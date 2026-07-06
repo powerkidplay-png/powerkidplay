@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：備轉容量調度台
+  開發日期：2026-06-21
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，請先來信告知：
+  powerkidplay@gmail.com
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>備轉容量調度台</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: transparent;
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    display:flex; justify-content:center; padding:12px;
+  }
+  .game {
+    width:100%; max-width:450px;
+    background:linear-gradient(180deg,#1976D2 0%,#3FA9E0 45%,#7FD4E8 100%);
+    border-radius:22px; overflow:hidden;
+    box-shadow:0 8px 28px rgba(21,101,192,0.3);
+    position:relative;
+  }
+  .game::before {
+    content:""; position:absolute; top:0; left:15%; width:70px; height:180px;
+    background:linear-gradient(180deg,rgba(255,255,255,0.3),transparent);
+    transform:skewX(-12deg); pointer-events:none;
+  }
+
+  .head { text-align:center; padding:18px 16px 10px; position:relative; z-index:1; }
+  .head h1 { color:#fff; font-size:1.3rem; text-shadow:0 2px 6px rgba(13,44,74,0.4); }
+  .head p { color:#E3F7FB; font-size:0.82rem; margin-top:4px; }
+
+  /* 儀表板 */
+  .panel {
+    background:rgba(255,255,255,0.95); margin:8px 14px; border-radius:16px;
+    padding:16px; position:relative; z-index:1;
+    box-shadow:0 3px 12px rgba(13,44,74,0.15);
+  }
+
+  .gauge-label { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .gauge-label .name { font-size:0.9rem; font-weight:700; color:#0d2c4a; }
+  .gauge-label .val { font-size:1.15rem; font-weight:800; color:#1565C0; }
+  .gauge-label .val small { font-size:0.7rem; font-weight:600; color:#5e7d96; }
+
+  .bar-track {
+    height:26px; background:#E3F2FD; border-radius:13px; overflow:hidden;
+    position:relative; margin-bottom:14px;
+  }
+  .bar-fill {
+    height:100%; border-radius:13px; transition:width 0.3s ease, background 0.3s ease;
+    display:flex; align-items:center; justify-content:flex-end; padding-right:8px;
+  }
+  .bar-fill span { color:#fff; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+
+  /* 供電是固定的，用不同顏色 */
+  .supply .bar-fill { background:linear-gradient(90deg,#43A047,#66BB6A); }
+
+  /* 滑桿 */
+  .slider-wrap { margin:6px 0 2px; }
+  .slider-wrap label { font-size:0.85rem; font-weight:700; color:#0d2c4a; display:block; margin-bottom:8px; }
+  input[type=range] {
+    width:100%; height:30px; -webkit-appearance:none; appearance:none;
+    background:transparent; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    height:10px; border-radius:5px;
+    background:linear-gradient(90deg,#FFD54F,#FB8C00,#E53935);
+  }
+  input[type=range]::-moz-range-track {
+    height:10px; border-radius:5px;
+    background:linear-gradient(90deg,#FFD54F,#FB8C00,#E53935);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance:none; appearance:none; width:28px; height:28px;
+    border-radius:50%; background:#fff; border:3px solid #1565C0;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25); margin-top:-9px;
+  }
+  input[type=range]::-moz-range-thumb {
+    width:28px; height:28px; border-radius:50%; background:#fff;
+    border:3px solid #1565C0; box-shadow:0 2px 6px rgba(0,0,0,0.25);
+  }
+  .slider-hint { display:flex; justify-content:space-between; font-size:0.7rem; color:#5e7d96; margin-top:2px; }
+
+  /* 燈號 + 備轉率大顯示 */
+  .result {
+    margin:8px 14px; border-radius:16px; padding:16px;
+    text-align:center; position:relative; z-index:1;
+    transition:background 0.3s ease; color:#fff;
+  }
+  .result .margin-num { font-size:2.4rem; font-weight:800; line-height:1; text-shadow:0 2px 6px rgba(0,0,0,0.25); }
+  .result .margin-num small { font-size:1rem; }
+  .result .light-name { font-size:1rem; font-weight:700; margin-top:4px; }
+
+  /* 角色對話 */
+  .char {
+    margin:0 14px 14px; border-radius:14px; padding:12px 14px;
+    display:flex; gap:10px; align-items:flex-start; position:relative; z-index:1;
+    transition:all 0.3s ease;
+  }
+  .char .avatar { font-size:1.8rem; flex-shrink:0; line-height:1; }
+  .char .say { font-size:0.86rem; line-height:1.5; }
+  .char .say b { display:block; font-size:0.72rem; opacity:0.7; margin-bottom:2px; }
+
+  .footer { text-align:center; padding:4px 14px 12px; position:relative; z-index:1; }
+  .footer p { color:rgba(255,255,255,0.85); font-size:0.68rem; }
+</style>
+</head>
+<body>
+<div class="game">
+  <div class="head">
+    <h1>⚡ 備轉容量調度台</h1>
+    <p>拖動滑桿改變今天的用電量，看看電夠不夠用</p>
+  </div>
+
+  <div class="panel">
+    <!-- 供電（固定） -->
+    <div class="supply">
+      <div class="gauge-label">
+        <span class="name">🔋 今天能發的電</span>
+        <span class="val">3,600 <small>萬瓩</small></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:100%;"><span>發電廠全開</span></div>
+      </div>
+    </div>
+
+    <!-- 用電（可調） -->
+    <div>
+      <div class="gauge-label">
+        <span class="name">🏠 大家要用的電</span>
+        <span class="val" id="demandVal">2,800 <small>萬瓩</small></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" id="demandBar" style="width:78%;background:linear-gradient(90deg,#FB8C00,#FFB74D);">
+          <span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="slider-wrap">
+      <label>👇 拖動滑桿，調整用電量</label>
+      <input type="range" id="slider" min="2000" max="3800" value="2800" step="50">
+      <div class="slider-hint"><span>用電少（深夜）</span><span>用電多（大熱天）</span></div>
+    </div>
+  </div>
+
+  <!-- 備轉率結果 + 燈號 -->
+  <div class="result" id="result">
+    <div class="margin-num" id="marginNum">28.6<small>%</small></div>
+    <div class="light-name" id="lightName">🟢 綠燈：供電充裕</div>
+  </div>
+
+  <!-- 角色對話 -->
+  <div class="char" id="char">
+    <div class="avatar" id="avatar">🐢</div>
+    <div class="say"><b id="charName">海龜助教</b><span id="charSay">電發得比用得多很多，備轉容量充足，大家可以安心用電！</span></div>
+  </div>
+
+  <div class="footer">
+    <p>（小工具由電力爸爸開發，數據為模擬教學用途）</p>
+    <p>© <span id="year"></span> 電力爸爸的生活筆記</p>
+  </div>
+</div>
+
+<script>
+  var SUPPLY = 3600; // 固定供電量（萬瓩）
+  var slider = document.getElementById('slider');
+  var demandVal = document.getElementById('demandVal');
+  var demandBar = document.getElementById('demandBar');
+  var marginNum = document.getElementById('marginNum');
+  var lightName = document.getElementById('lightName');
+  var result = document.getElementById('result');
+  var avatar = document.getElementById('avatar');
+  var charName = document.getElementById('charName');
+  var charSay = document.getElementById('charSay');
+  var charBox = document.getElementById('char');
+
+  function fmt(n){ return n.toLocaleString('en-US'); }
+
+  function update(){
+    var demand = parseInt(slider.value, 10);
+    var margin = (SUPPLY - demand) / demand * 100; // 備轉容量率
+
+    // 用電條寬度（相對供電）
+    var w = Math.min(100, demand / SUPPLY * 100);
+    demandBar.style.width = w + '%';
+    demandVal.innerHTML = fmt(demand) + ' <small>萬瓩</small>';
+
+    marginNum.innerHTML = margin.toFixed(1) + '<small>%</small>';
+
+    // 依備轉率決定燈號、顏色、角色反應（呼應台電五色燈號精神）
+    var bg, light, av, name, say;
+    if (margin >= 15) {
+      bg = 'linear-gradient(135deg,#43A047,#66BB6A)';
+      light = '🟢 綠燈：供電充裕';
+      av = '🐢'; name = '海龜助教';
+      say = '電發得比用得多很多，備轉容量充足，大家可以安心用電！';
+    } else if (margin >= 10) {
+      bg = 'linear-gradient(135deg,#FDD835,#FFEE58)';
+      light = '🟡 黃燈：供電吃緊';
+      av = '⚡'; name = '電鱝老師';
+      say = '用電變多了，備轉容量開始下降。還安全，但要留意尖峰時段。';
+    } else if (margin >= 6) {
+      bg = 'linear-gradient(135deg,#FB8C00,#FFA726)';
+      light = '🟠 橘燈：供電警戒';
+      av = '🐡'; name = '河豚警示員';
+      say = '注意！剩下的電不多了，這時候看剩幾萬瓩比看百分比更重要！';
+    } else {
+      bg = 'linear-gradient(135deg,#E53935,#EF5350)';
+      light = '🔴 紅燈：供電緊張';
+      av = '🐡'; name = '河豚警示員';
+      say = '危險！用電快追上發電了，可能要請大家一起節電，或啟動備用機組！';
+    }
+
+    result.style.background = bg;
+    lightName.textContent = light;
+    avatar.textContent = av;
+    charName.textContent = name;
+    charSay.textContent = say;
+
+    // 角色對話框底色跟著角色走
+    if (av === '🐢') charBox.style.background = 'rgba(232,245,233,0.95)';
+    else if (av === '⚡') charBox.style.background = 'rgba(227,242,253,0.95)';
+    else charBox.style.background = 'rgba(255,235,238,0.95)';
+    charBox.style.color = '#0d2c4a';
+  }
+
+  slider.addEventListener('input', update);
+  document.getElementById('year').textContent = Math.max(2026, new Date().getFullYear());
+  update();
+</script>
+</body>
+</html>
