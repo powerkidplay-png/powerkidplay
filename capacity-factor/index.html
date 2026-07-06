@@ -1,1 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：容量因數發電計算機
+  開發日期：2026-06-30
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記。保留所有權利。
+  ❌ 禁止複製程式碼至其他網站
+  ✅ 允許透過本站連結分享
+  授權洽詢：powerkidplay@gmail.com
+-->
+<title>容量因數發電計算機</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff;
+    font-size: 19px;
+    font-weight: 700;
+    text-align: center;
+    padding: 16px 12px;
+    letter-spacing: 0.5px;
+  }
 
+  /* 控制區 */
+  .control-area { padding: 18px 18px 4px; }
+  .slider-row { margin-bottom: 16px; }
+  .slider-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 2px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800;
+    padding: 3px 13px; border-radius: 20px; color: #fff;
+    min-width: 78px; text-align: center;
+  }
+  .val-cap { background: #1565C0; }
+  .val-cf  { background: #18A99C; }
+
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  #capSlider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  #cfSlider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #18A99C; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  #capSlider::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  #cfSlider::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #18A99C; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+
+  /* 結果區 */
+  .result-area {
+    margin: 4px 18px 16px;
+    background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
+    border-radius: 14px;
+    padding: 15px 14px;
+    text-align: center;
+  }
+  .result-label { font-size: 14px; color: #555; margin-bottom: 2px; }
+  .result-number { font-size: 19px; font-weight: 700; color: #1565C0; }
+  #resultNum {
+    font-size: 46px; font-weight: 900;
+    color: #0D47A1; line-height: 1.05;
+    display: inline-block; min-width: 64px;
+  }
+  .formula {
+    margin-top: 10px; font-size: 14px; color: #00695C;
+    background: #ffffff; border-radius: 10px;
+    padding: 8px 6px; font-weight: 700;
+    border: 1px dashed #80CBC4;
+  }
+
+  /* 一年發電格子板 */
+  .grid-area { padding: 0 18px 2px; }
+  .grid-label { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
+  .grid-label b { color: #00897B; font-size: 15px; }
+  .grid-board {
+    display: grid; grid-template-columns: repeat(10,1fr);
+    gap: 3px; padding: 9px; max-width: 300px; margin: 0 auto;
+    background: #F2F7FB; border-radius: 12px;
+  }
+  .grid-cell {
+    aspect-ratio: 1; background: #DDE6EE;
+    border-radius: 3px; transition: background 0.12s ease;
+  }
+  .grid-cell.lit { background: #18A99C; }
+
+  /* 角色對話框 */
+  .dialogue {
+    margin: 12px 18px 0; padding: 11px 14px;
+    border-radius: 12px; font-size: 14px;
+    line-height: 1.6; font-weight: 500;
+  }
+  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
+  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
+
+  .footer {
+    text-align: center; font-size: 11px; color: #b0b0b0;
+    padding: 15px 12px 17px;
+  }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">🏭 容量因數發電計算機</div>
+
+  <div class="control-area">
+    <div class="slider-row">
+      <div class="slider-head">
+        <span class="lbl">裝置容量<small>招牌多大</small></span>
+        <span class="val-badge val-cap" id="capVal">100 萬瓩</span>
+      </div>
+      <input type="range" id="capSlider" min="10" max="200" step="10" value="100">
+    </div>
+    <div class="slider-row">
+      <div class="slider-head">
+        <span class="lbl">容量因數<small>一年跑多滿</small></span>
+        <span class="val-badge val-cf" id="cfVal">75%</span>
+      </div>
+      <input type="range" id="cfSlider" min="10" max="95" step="5" value="75">
+    </div>
+  </div>
+
+  <div class="result-area">
+    <div class="result-label">這座電廠一年大約發出</div>
+    <div class="result-number"><span id="resultNum">65.7</span> 億度</div>
+    <div class="formula" id="formula">100 萬瓩 × 75% × 8760 小時</div>
+  </div>
+
+  <div class="grid-area">
+    <div class="grid-label">一整年（100 格）｜已點亮 <b id="litCount">75</b> 格</div>
+    <div class="grid-board" id="gridBoard"></div>
+  </div>
+
+  <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：拉拉看上面兩根桿子，我馬上幫你算這座電廠一年發多少電！</div>
+  <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：招牌再大，也要看牠跑了多久。</div>
+
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+
+<script>
+  var capSlider = document.getElementById('capSlider');
+  var cfSlider  = document.getElementById('cfSlider');
+  var capVal    = document.getElementById('capVal');
+  var cfVal     = document.getElementById('cfVal');
+  var resultNum = document.getElementById('resultNum');
+  var formula   = document.getElementById('formula');
+  var litCount  = document.getElementById('litCount');
+  var gridBoard = document.getElementById('gridBoard');
+  var turtleBox = document.getElementById('turtleBox');
+  var rayBox    = document.getElementById('rayBox');
+
+  // 建立 100 個格子（代表一整年）
+  var cells = [];
+  for (var i = 0; i < 100; i++) {
+    var c = document.createElement('div');
+    c.className = 'grid-cell';
+    gridBoard.appendChild(c);
+    cells.push(c);
+  }
+
+  function compute() {
+    var cap = parseInt(capSlider.value, 10);   // 萬瓩
+    var cf  = parseInt(cfSlider.value, 10);     // %
+    var yiDu = (cap * 10000 * (cf / 100) * 8760) / 100000000; // 億度
+    return { cap: cap, cf: cf, yiDu: yiDu };
+  }
+
+  // 即時更新（拖動滑桿時）：數字、公式、格子、電鱝老師台詞
+  function render() {
+    var s = compute();
+    capVal.textContent = s.cap + ' 萬瓩';
+    cfVal.textContent  = s.cf + '%';
+    resultNum.textContent = s.yiDu.toFixed(1);
+    formula.textContent = s.cap + ' 萬瓩 × ' + s.cf + '% × 8760 小時';
+
+    litCount.textContent = s.cf;
+    for (var i = 0; i < 100; i++) {
+      if (i < s.cf) cells[i].classList.add('lit');
+      else cells[i].classList.remove('lit');
+    }
+
+    if (s.cf >= 90) {
+      rayBox.textContent = '⚡ 電鱝老師：容量因數這麼高——幾乎整年都在發電呢。';
+    } else if (s.cf <= 20) {
+      rayBox.textContent = '⚡ 電鱝老師：跑得少不是壞掉，是任務不同，緊急時才出動。';
+    } else {
+      rayBox.textContent = '⚡ 電鱝老師：招牌再大，也要看牠跑了多久。';
+    }
+    return s.yiDu.toFixed(1);
+  }
+
+  // 放手時（change）：海龜助教報出最後答案
+  function report() {
+    var v = render();
+    turtleBox.textContent = '🐢 海龜助教：算出來了，是 ' + v + ' 億度！';
+  }
+
+  capSlider.addEventListener('input', render);
+  cfSlider.addEventListener('input', render);
+  capSlider.addEventListener('change', report);
+  cfSlider.addEventListener('change', report);
+
+  // 初始化畫面（保留海龜開場白，不覆蓋）
+  render();
+
+  // 版權年份自動計算，起始 2026
+  var y = new Date().getFullYear();
+  document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+</script>
+</body>
+</html>
