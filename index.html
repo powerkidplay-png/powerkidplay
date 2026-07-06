@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<!--
+  ⚡ 電力爸爸的生活筆記 - 工具總匯頁（GitHub 自動掃描版）
+  自動偵測 repo 裡的遊戲資料夾，讀各自的 game.json，排成卡片。
+  新增遊戲只要放資料夾 + game.json，這頁自動更新，不用手改。
+
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享。若要在自己的網站使用或改作，請來信：
+  powerkidplay@gmail.com
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ 電力爸爸 互動工具總匯</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    background:#E3F7FB; color:#0d2c4a; padding:16px 12px;
+  }
+  .hub { max-width:1040px; margin:0 auto; }
+
+  .ocean {
+    background:linear-gradient(180deg,#1976D2 0%,#3FA9E0 35%,#7FD4E8 70%,#E3F7FB 100%);
+    border-radius:24px; padding:0 0 2.5em; overflow:hidden; position:relative;
+    box-shadow:0 8px 30px rgba(21,101,192,0.25);
+  }
+  .ray { position:absolute; top:0; background:linear-gradient(180deg,rgba(255,255,255,0.3),transparent); transform:skewX(-12deg); pointer-events:none; z-index:1; }
+  .ray.r1 { left:12%; width:110px; height:320px; }
+  .ray.r2 { left:44%; width:80px; height:250px; }
+  .ray.r3 { left:70%; width:100px; height:290px; }
+  .bubble { position:absolute; border-radius:50%; background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.9),rgba(255,255,255,0.15)); border:1px solid rgba(255,255,255,0.4); animation:up linear infinite; pointer-events:none; z-index:1; }
+  @keyframes up { 0%{transform:translateY(0) scale(1);opacity:0;} 10%{opacity:0.8;} 90%{opacity:0.5;} 100%{transform:translateY(-220px) scale(1.1);opacity:0;} }
+
+  .header { position:relative; z-index:2; text-align:center; padding:2.5em 1.5em 1.5em; }
+  .header h1 { color:#fff; font-size:2em; text-shadow:0 2px 8px rgba(13,44,74,0.4); letter-spacing:0.02em; }
+  .header h1 .s { color:#FFEB3B; }
+  .header p { color:#E3F7FB; font-size:1.05em; margin-top:0.4em; text-shadow:0 1px 4px rgba(13,44,74,0.3); }
+
+  .filters { position:relative; z-index:2; display:flex; flex-wrap:wrap; gap:0.6em; justify-content:center; padding:0 1.5em; margin:1.5em 0; }
+  .fbtn { border:2px solid #fff; background:rgba(255,255,255,0.85); color:#1565C0; padding:0.45em 1.1em; border-radius:22px; font-size:0.92em; cursor:pointer; transition:all 0.2s; font-weight:700; box-shadow:0 2px 6px rgba(13,44,74,0.15); }
+  .fbtn:hover { background:#fff; transform:translateY(-2px); }
+  .fbtn.on { background:#FFEB3B; color:#0d2c4a; border-color:#FFEB3B; }
+
+  .content { position:relative; z-index:2; background:rgba(255,255,255,0.92); margin:0 1.2em; border-radius:18px; padding:1.5em 1.5em 2em; box-shadow:0 4px 20px rgba(13,44,74,0.15); }
+
+  .cat-title { font-size:1.25em; font-weight:800; color:#1565C0; display:flex; align-items:center; gap:0.5em; margin:1.6em 0 1em; padding-bottom:0.5em; border-bottom:3px dashed #85B7EB; }
+  .cat-title:first-child { margin-top:0.3em; }
+  .dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:1.3em; }
+  .card { border-radius:18px; overflow:hidden; background:#fff; box-shadow:0 4px 14px rgba(13,44,74,0.12); transition:transform 0.22s,box-shadow 0.22s; display:flex; flex-direction:column; border:2px solid transparent; }
+  .card:hover { transform:translateY(-6px); box-shadow:0 10px 24px rgba(21,101,192,0.22); border-color:#85B7EB; }
+  .thumb { height:150px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .thumb img { width:100%; height:100%; object-fit:cover; }
+  .thumb .ph { font-size:3.4em; filter:drop-shadow(0 2px 4px rgba(13,44,74,0.2)); }
+  .cbody { padding:1.1em 1.2em 1.2em; flex:1; display:flex; flex-direction:column; }
+  .cname { font-size:1.1em; font-weight:800; color:#0d2c4a; margin:0 0 0.4em; line-height:1.35; }
+  .cart { font-size:0.82em; color:#5e7d96; line-height:1.5; margin:0 0 0.7em; display:flex; gap:0.35em; align-items:flex-start; }
+  .cart i { font-style:normal; flex-shrink:0; opacity:0.7; }
+  .ctag { display:inline-block; font-size:0.74em; font-weight:700; padding:0.2em 0.7em; border-radius:12px; margin-bottom:0.7em; align-self:flex-start; }
+  .cdesc { font-size:0.9em; color:#3c5a73; line-height:1.65; margin:0 0 1.1em; flex:1; }
+  .acts { display:flex; gap:0.6em; }
+  .btn { flex:1; text-align:center; padding:0.6em; border-radius:12px; font-size:0.88em; font-weight:700; text-decoration:none; transition:all 0.18s; }
+  .btn:hover { transform:scale(1.04); }
+  .play { background:linear-gradient(135deg,#1565C0,#1E88E5); color:#fff; box-shadow:0 3px 8px rgba(21,101,192,0.3); }
+  .art { background:#fff; color:#1565C0; border:2px solid #1565C0; }
+
+  .status { text-align:center; padding:3em 1em; color:#3c5a73; font-size:1em; }
+  .status .big { font-size:2.5em; display:block; margin-bottom:0.3em; }
+
+  .wave { display:block; width:100%; height:38px; margin-top:-1px; }
+
+  @media (max-width:600px) {
+    .grid { grid-template-columns:1fr; }
+    .header h1 { font-size:1.5em; }
+    .content { margin:0 0.6em; padding:1.2em 1em 1.5em; }
+  }
+</style>
+</head>
+<body>
+<div class="hub">
+  <div class="ocean">
+    <div class="ray r1"></div><div class="ray r2"></div><div class="ray r3"></div>
+
+    <div class="header">
+      <h1><span class="s">⚡</span> 電力爸爸 互動工具總匯</h1>
+      <p>海洋電力學校的小遊戲都在這！選一個主題，玩中學電力</p>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="fbtn on" data-cat="全部">🌊 全部</button>
+    </div>
+
+    <div class="content">
+      <div id="content"><div class="status"><span class="big">🐢</span>海龜助教正在盤點工具…</div></div>
+    </div>
+  </div>
+  <svg class="wave" viewBox="0 0 1200 38" preserveAspectRatio="none"><path d="M0,19 C150,38 350,0 600,19 C850,38 1050,0 1200,19 L1200,38 L0,38 Z" fill="#E3F7FB"/></svg>
+</div>
+
+<script>
+(function(){
+  // ===== 設定（依你的 GitHub 帳號與 repo）=====
+  var GH_USER = "powerkidplay-png";
+  var GH_REPO = "powerkidplay";
+  var GH_BRANCH = "main";
+  // 遊戲網址前綴（GitHub Pages）
+  var PAGES_BASE = "https://" + GH_USER + ".github.io/" + GH_REPO + "/";
+  // 不是遊戲的資料夾，掃描時略過
+  var IGNORE = ["assets", ".github", "images", "img"];
+
+  // 分類設定（顏色 + emoji）
+  var CAT = {
+    "供電基礎":{c:"#1565C0",e:"⚡"}, "太陽能":{c:"#F9A825",e:"☀️"},
+    "風力":{c:"#26A69A",e:"🌬️"}, "儲能與調度":{c:"#43A047",e:"🔋"},
+    "尖峰離峰":{c:"#5E35B1",e:"📊"}, "核能與基載":{c:"#00838F",e:"🪸"},
+    "其他":{c:"#78909C",e:"🌊"}
+  };
+  var CAT_ORDER = Object.keys(CAT);
+
+  var games = [], curCat = "全部";
+
+  function catConf(c){ return CAT[c] || {c:"#78909C",e:"🌊"}; }
+  function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+  function bubbles(){
+    var o = document.querySelector(".ocean");
+    for(var i=0;i<12;i++){
+      var b=document.createElement("div"); b.className="bubble";
+      var s=6+Math.random()*15; b.style.width=s+"px"; b.style.height=s+"px";
+      b.style.left=Math.random()*100+"%"; b.style.bottom="-30px";
+      b.style.animationDuration=(5+Math.random()*6)+"s"; b.style.animationDelay=(Math.random()*6)+"s";
+      o.appendChild(b);
+    }
+  }
+
+  // 用 GitHub API 列出根目錄的資料夾
+  function listFolders(){
+    var api = "https://api.github.com/repos/" + GH_USER + "/" + GH_REPO + "/contents/?ref=" + GH_BRANCH;
+    return fetch(api).then(function(r){
+      if(!r.ok) throw new Error("GitHub API "+r.status);
+      return r.json();
+    }).then(function(items){
+      return items.filter(function(it){
+        return it.type === "dir" && IGNORE.indexOf(it.name) === -1;
+      }).map(function(it){ return it.name; });
+    });
+  }
+
+  // 讀單一資料夾的 game.json
+  function readGame(folder){
+    var url = PAGES_BASE + folder + "/game.json";
+    return fetch(url).then(function(r){
+      if(!r.ok) return null; // 沒有 game.json 就跳過
+      return r.json();
+    }).then(function(j){
+      if(!j) return null;
+      j._folder = folder;
+      j._url = PAGES_BASE + folder + "/";
+      return j;
+    }).catch(function(){ return null; });
+  }
+
+  function buildFilters(){
+    var cats=[];
+    games.forEach(function(g){ var c=g.category||"其他"; if(cats.indexOf(c)===-1)cats.push(c); });
+    cats.sort(function(a,b){ var ia=CAT_ORDER.indexOf(a),ib=CAT_ORDER.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); });
+    var box=document.getElementById("filters");
+    cats.forEach(function(c){
+      var cf=catConf(c),btn=document.createElement("button");
+      btn.className="fbtn"; btn.setAttribute("data-cat",c); btn.textContent=cf.e+" "+c;
+      box.appendChild(btn);
+    });
+    box.addEventListener("click",function(e){
+      var b=e.target.closest(".fbtn"); if(!b)return;
+      curCat=b.getAttribute("data-cat");
+      box.querySelectorAll(".fbtn").forEach(function(x){x.classList.remove("on");});
+      b.classList.add("on"); render();
+    });
+  }
+
+  function card(g){
+    var cf=catConf(g.category||"其他");
+    var thumbBg="linear-gradient(135deg,"+cf.c+"22,"+cf.c+"44)";
+    var thumb=g.thumb ? '<img src="'+esc(g.thumb)+'" alt="'+esc(g.name)+'">' : '<span class="ph">'+cf.e+'</span>';
+    var art=g.articleTitle ? '<div class="cart"><i>📄</i>'+esc(g.articleTitle)+'</div>' : '';
+    var tag=g.gameType ? '<span class="ctag" style="background:'+cf.c+'1a;color:'+cf.c+'">'+esc(g.gameType)+'</span>' : '';
+    var artBtn=g.articleUrl ? '<a class="btn art" href="'+esc(g.articleUrl)+'" target="_blank" rel="noopener">📖 看文章</a>' : '';
+    return '<div class="card"><div class="thumb" style="background:'+thumbBg+'">'+thumb+'</div>'
+      + '<div class="cbody"><div class="cname">'+esc(g.name||g._folder)+'</div>'+art+tag
+      + '<div class="cdesc">'+esc(g.desc||"")+'</div>'
+      + '<div class="acts"><a class="btn play" href="'+esc(g._url)+'" target="_blank" rel="noopener">▶ 玩一玩</a>'+artBtn+'</div>'
+      + '</div></div>';
+  }
+
+  function render(){
+    var box=document.getElementById("content");
+    var list = curCat==="全部" ? games : games.filter(function(g){return (g.category||"其他")===curCat;});
+    if(list.length===0){ box.innerHTML='<div class="status"><span class="big">🐡</span>這個分類還沒有工具，敬請期待！</div>'; return; }
+    var html="";
+    if(curCat==="全部"){
+      var cats=[]; list.forEach(function(g){var c=g.category||"其他"; if(cats.indexOf(c)===-1)cats.push(c);});
+      cats.sort(function(a,b){var ia=CAT_ORDER.indexOf(a),ib=CAT_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+      cats.forEach(function(c){
+        var cf=catConf(c);
+        html+='<div class="cat-title"><span class="dot" style="background:'+cf.c+'"></span>'+cf.e+' '+esc(c)+'</div>';
+        html+='<div class="grid">';
+        list.filter(function(g){return (g.category||"其他")===c;})
+            .sort(function(a,b){return (a.order||99)-(b.order||99);})
+            .forEach(function(g){html+=card(g);});
+        html+='</div>';
+      });
+    } else {
+      html+='<div class="grid">';
+      list.sort(function(a,b){return (a.order||99)-(b.order||99);}).forEach(function(g){html+=card(g);});
+      html+='</div>';
+    }
+    box.innerHTML=html;
+  }
+
+  function load(){
+    bubbles();
+    listFolders()
+      .then(function(folders){
+        if(folders.length===0){ document.getElementById("content").innerHTML='<div class="status"><span class="big">🌊</span>還沒有任何遊戲資料夾。</div>'; return; }
+        return Promise.all(folders.map(readGame)).then(function(results){
+          games = results.filter(function(g){return g!==null;});
+          if(games.length===0){ document.getElementById("content").innerHTML='<div class="status"><span class="big">📄</span>找到資料夾，但都還沒放 game.json。<br>幫每個遊戲加一個 game.json 就會顯示囉。</div>'; return; }
+          buildFilters(); render();
+        });
+      })
+      .catch(function(err){
+        document.getElementById("content").innerHTML='<div class="status"><span class="big">🐡</span>載入失敗：'+esc(err.message)+'<br>請確認帳號與 repo 名稱設定正確。</div>';
+        console.error(err);
+      });
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
