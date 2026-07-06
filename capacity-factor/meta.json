@@ -1,0 +1,17 @@
+{
+  "slug": "capacity-factor",
+  "title": "容量因數發電計算機",
+  "emoji": "🏭",
+  "category": "電力科普",
+  "gameType": "拉桿滑桿控制型",
+  "grade": "國小三～六年級",
+  "shortDesc": "拉滑桿調裝置容量與容量因數，即時算出一座電廠一年發多少度電。",
+  "longDesc": "兩座招牌一樣大的電廠，一年發的電卻可能差很多，關鍵就在容量因數。這台計算機讓孩子親手拉動「裝置容量」與「容量因數」兩根滑桿，年發電量的數字會即時跳動，下方一整年的 100 格發電板也會依比例一格格點亮，直觀感受「容量因數越高、一年發越多電」。",
+  "concept": "容量因數、裝置容量、8760小時、年發電量",
+  "article": "容量因數是什麼？看懂台電機組全年發電實力的關鍵數字",
+  "articleUrl": "",
+  "toolUrl": "https://powerkidplay-png.github.io/powerkidplay/capacity-factor/",
+  "coverImage": "",
+  "publishDate": "2026-06-30",
+  "status": "online"
+}
