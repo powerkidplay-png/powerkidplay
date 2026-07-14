@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：跟拍上班日記
+  開發日期：2026-07-13
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，請先來信告知：
+  powerkidplay@gmail.com
+-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>跟拍上班日記</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:transparent;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;}
+
+  .tool-wrap{max-width:450px;margin:0 auto;background:#F5FAFF;border-radius:22px;
+    padding:18px 16px 14px;box-shadow:0 6px 20px rgba(21,101,192,.15);color:#0d2b45;}
+  .tool-head{text-align:center;margin-bottom:10px;}
+  .tool-head h1{font-size:20px;color:#0d47a1;font-weight:800;letter-spacing:.5px;}
+  .tool-head p{font-size:12.5px;color:#4a6b8a;margin-top:4px;}
+  .same-size{background:#fff;border:2px dashed #90caf9;border-radius:12px;
+    padding:8px 10px;font-size:12.5px;color:#1565C0;text-align:center;
+    line-height:1.6;margin-bottom:12px;font-weight:700;}
+
+  .season-row{display:flex;gap:10px;margin-bottom:12px;}
+  .season-btn{flex:1;padding:10px 0;border:2px solid #90caf9;border-radius:14px;background:#fff;
+    color:#1565C0;font-size:15px;font-weight:700;cursor:pointer;transition:.15s;}
+  .season-btn.active{background:linear-gradient(135deg,#1565C0,#1976D2);color:#fff;
+    border-color:#1565C0;box-shadow:0 3px 8px rgba(21,101,192,.3);}
+  .season-btn:focus-visible{outline:3px solid #ffb300;outline-offset:2px;}
+
+  .scene{display:flex;gap:6px;border-radius:16px;padding:12px 6px 10px;position:relative;
+    overflow:hidden;transition:filter .4s;
+    background:linear-gradient(180deg,#1976D2 0%,#64b5f6 55%,#E3F2FD 100%);}
+  .scene.night{filter:brightness(.82) saturate(.92);}
+  .char-col{flex:1;text-align:center;}
+  .char-col svg{width:110px;height:118px;display:block;margin:0 auto;}
+  .char-name{font-size:12px;font-weight:700;color:#fff;margin-top:2px;
+    text-shadow:0 1px 3px rgba(0,0,0,.45);}
+  .inst-label{font-size:11.5px;color:#fff;margin-top:5px;text-shadow:0 1px 2px rgba(0,0,0,.4);}
+  .inst-label b{font-size:14px;}
+  .inst-bar-bg{height:9px;background:rgba(255,255,255,.5);border-radius:6px;
+    margin:3px 8px 0;overflow:hidden;}
+  .inst-bar{height:100%;width:0%;border-radius:6px;transition:width .12s;}
+  .inst-solar{background:linear-gradient(90deg,#aed581,#689f38);}
+  .inst-wind{background:linear-gradient(90deg,#4fc3f7,#0288d1);}
+
+  .time-box{margin:14px 2px 4px;}
+  .time-label{text-align:center;font-size:15px;font-weight:700;color:#0d47a1;margin-bottom:7px;}
+  .time-label .clock{font-size:22px;vertical-align:-2px;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:8px;
+    background:linear-gradient(90deg,#1a237e 0%,#ffd54f 50%,#1a237e 100%);outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;
+    border-radius:50%;background:#fff;border:3px solid #1565C0;cursor:pointer;
+    box-shadow:0 2px 5px rgba(0,0,0,.25);}
+  input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;
+    border:3px solid #1565C0;cursor:pointer;}
+  input[type=range]:focus-visible{outline:3px solid #ffb300;outline-offset:3px;}
+  input[type=range]:disabled{opacity:.75;}
+  .time-ends{display:flex;justify-content:space-between;font-size:11.5px;color:#4a6b8a;margin-top:3px;}
+
+  .act-row{display:flex;gap:10px;margin:12px 2px 4px;}
+  .act-btn{flex:1;padding:11px 0;border:none;border-radius:14px;font-size:14.5px;
+    font-weight:700;cursor:pointer;color:#fff;}
+  .btn-run{background:linear-gradient(135deg,#1565C0,#1976D2);}
+  .btn-reset{background:#90a4ae;}
+  .act-btn:disabled{opacity:.5;cursor:default;}
+  .act-btn:focus-visible{outline:3px solid #ffb300;outline-offset:2px;}
+
+  .acc-box{margin:16px 2px 4px;}
+  .acc-title{font-size:14px;font-weight:800;color:#0d47a1;margin-bottom:8px;text-align:center;}
+  .acc-row{margin-bottom:9px;}
+  .acc-top{display:flex;justify-content:space-between;align-items:center;
+    font-size:13px;font-weight:700;margin-bottom:3px;}
+  .acc-bar-bg{height:22px;background:#e3edf5;border-radius:12px;overflow:hidden;}
+  .acc-bar{height:100%;width:0%;border-radius:12px;transition:width .18s;}
+  .acc-solar{background:linear-gradient(90deg,#9ccc65,#558b2f);}
+  .acc-wind{background:linear-gradient(90deg,#4fc3f7,#01579b);}
+  .badge{text-align:center;margin-top:8px;font-size:14.5px;font-weight:800;
+    padding:9px;border-radius:12px;display:none;line-height:1.5;}
+  .badge.show-win{display:block;background:#e1f0ff;color:#0d47a1;border:2px dashed #1976D2;}
+  .badge.show-sum{display:block;background:#fff8e1;color:#e65100;border:2px dashed #ffb300;}
+
+  .dialog-area{margin:14px 2px 6px;}
+  .dialog{border-radius:14px;padding:10px 13px;font-size:13.5px;line-height:1.7;
+    border:2px solid #66BB6A;background:#E8F5E9;margin-bottom:8px;}
+  .dialog:last-child{margin-bottom:0;}
+  .dialog .who{font-weight:800;display:block;margin-bottom:2px;}
+  .d-turtle{background:#E8F5E9;border-color:#66BB6A;}
+  .d-turtle .who{color:#2e7d32;}
+  .d-ray{background:#E3F2FD;border-color:#1976D2;}
+  .d-ray .who{color:#1565C0;}
+  .d-puffer{background:#FFEBEE;border-color:#C62828;}
+  .d-puffer .who{color:#c62828;}
+
+  .footnote{font-size:11px;color:#78909c;margin:10px 2px 0;line-height:1.7;}
+  .copyright{text-align:center;font-size:11px;color:#90a4ae;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="tool-head">
+    <h1>📅 跟拍上班日記</h1>
+    <p>切季節、拖時間，看誰的班上得多、月薪領得高</p>
+  </div>
+
+  <div class="same-size">⚙️ 兩台機器一樣大：全力運轉時，一小時都能發 100 度（時薪一樣）</div>
+
+  <div class="season-row">
+    <button class="season-btn active" id="btnSummer">☀️ 夏天</button>
+    <button class="season-btn" id="btnWinter">🍂 秋冬</button>
+  </div>
+
+  <div class="scene" id="scene">
+    <div class="char-col">
+      <svg viewBox="0 0 120 130" role="img" aria-label="葉羊海蛞蝓">
+        <defs><filter id="gb" x="-70%" y="-70%" width="240%" height="240%">
+          <feGaussianBlur stdDeviation="5"/></filter></defs>
+        <circle id="slugGlow" cx="60" cy="86" r="46" fill="#C6FF3D" opacity="0.35" filter="url(#gb)"/>
+        <g fill="#7CB342" stroke="#558B2F" stroke-width="1.5">
+          <path d="M42 60 q-6 -20 5 -24 q9 8 3 24 z"/>
+          <path d="M60 54 q-5 -22 6 -26 q9 10 2 26 z"/>
+          <path d="M78 60 q6 -20 -5 -24 q-9 8 -3 24 z"/>
+        </g>
+        <path d="M52 54 q-5 -12 -12 -15" stroke="#8D6E63" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <circle cx="39" cy="37" r="4" fill="#A1887F"/>
+        <path d="M68 54 q5 -12 12 -15" stroke="#8D6E63" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <circle cx="81" cy="37" r="4" fill="#A1887F"/>
+        <ellipse cx="60" cy="90" rx="37" ry="27" fill="#F8BBD0" stroke="#E68DAE" stroke-width="2"/>
+        <g id="slugAwake">
+          <circle cx="50" cy="88" r="4.5" fill="#3E2723"/>
+          <circle cx="70" cy="88" r="4.5" fill="#3E2723"/>
+          <path d="M51 100 q9 8 18 0" stroke="#3E2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </g>
+        <g id="slugSleep" style="display:none">
+          <path d="M45 88 q5 5 10 0" stroke="#3E2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M65 88 q5 5 10 0" stroke="#3E2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M55 101 q5 3 10 0" stroke="#3E2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <text x="86" y="62" font-size="16" fill="#ffffff" font-weight="bold">z</text>
+        </g>
+      </svg>
+      <div class="char-name">葉羊海蛞蝓・太陽能</div>
+      <div class="inst-label">這小時發 <b id="solarInstTxt">0</b> 度</div>
+      <div class="inst-bar-bg"><div class="inst-bar inst-solar" id="solarInstBar"></div></div>
+    </div>
+
+    <div class="char-col">
+      <svg viewBox="0 0 120 130" role="img" aria-label="中華白海豚">
+        <rect x="58" y="40" width="4" height="30" rx="2" fill="#B0BEC5"/>
+        <g id="fanBlades">
+          <ellipse cx="60" cy="24" rx="5.5" ry="15" transform="rotate(0 60 40)" fill="#ECEFF1" stroke="#90A4AE" stroke-width="1.2"/>
+          <ellipse cx="60" cy="24" rx="5.5" ry="15" transform="rotate(120 60 40)" fill="#ECEFF1" stroke="#90A4AE" stroke-width="1.2"/>
+          <ellipse cx="60" cy="24" rx="5.5" ry="15" transform="rotate(240 60 40)" fill="#ECEFF1" stroke="#90A4AE" stroke-width="1.2"/>
+        </g>
+        <circle cx="60" cy="40" r="5.5" fill="#78909C"/>
+        <path d="M24 92 Q40 66 74 72 Q100 76 106 62 Q102 90 80 96 Q83 104 94 108 Q76 108 68 98 Q44 102 24 92 Z"
+              fill="#FCE4EC" stroke="#F48FB1" stroke-width="2"/>
+        <path d="M40 91 Q58 99 76 90" stroke="#ffffff" stroke-width="4" fill="none" opacity="0.5"/>
+        <circle cx="50" cy="82" r="3.6" fill="#3E2723"/>
+        <path d="M43 90 q9 6 16 1" stroke="#3E2723" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="char-name">中華白海豚・離岸風電</div>
+      <div class="inst-label">這小時發 <b id="windInstTxt">0</b> 度</div>
+      <div class="inst-bar-bg"><div class="inst-bar inst-wind" id="windInstBar"></div></div>
+    </div>
+  </div>
+
+  <div class="time-box">
+    <div class="time-label"><span class="clock" id="clock">🕛</span> <span id="timeTxt">中午 12 點</span></div>
+    <input type="range" id="timeSlider" min="0" max="24" step="0.5" value="12" aria-label="時間">
+    <div class="time-ends"><span>🌙 半夜</span><span>☀️ 中午</span><span>🌙 半夜</span></div>
+  </div>
+
+  <div class="act-row">
+    <button class="act-btn btn-run" id="btnRun">▶️ 快轉一整天</button>
+    <button class="act-btn btn-reset" id="btnReset">🔄 重來</button>
+  </div>
+
+  <div class="acc-box">
+    <div class="acc-title">🧾 今天累積發電（月薪）</div>
+    <div class="acc-row">
+      <div class="acc-top"><span>🌱 太陽能</span><span id="accSolarNum">0 度</span></div>
+      <div class="acc-bar-bg"><div class="acc-bar acc-solar" id="accSolarBar"></div></div>
+    </div>
+    <div class="acc-row">
+      <div class="acc-top"><span>🌬️ 離岸風電</span><span id="accWindNum">0 度</span></div>
+      <div class="acc-bar-bg"><div class="acc-bar acc-wind" id="accWindBar"></div></div>
+    </div>
+    <div class="badge" id="badge"></div>
+  </div>
+
+  <div class="dialog-area" id="dialogArea"></div>
+
+  <div class="footnote">＊發電量依經濟部能源署官方規劃參數換算（太陽光電容量因數約 14%、離岸風電約 43%），是事前的估計值，實際每年會因天候略有增減。數據僅供模擬學習使用。</div>
+  <div class="copyright">© <span id="year"></span> 電力爸爸的生活筆記</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var CAP = 100;
+  var INST_MAX = 0.55;
+  var ACC_MAX = 820;
+
+  var season = 'summer';
+  var hour = 12;
+  var animating = false;
+  var touched = false;
+
+  function $(id){ return document.getElementById(id); }
+
+  function solarOut(h, s){
+    var summer = (s === 'summer');
+    var sunrise = summer ? 5.5 : 6.5;
+    var sunset  = summer ? 18.5 : 17.5;
+    var peak    = summer ? 0.50 : 0.38;
+    if(h <= sunrise || h >= sunset) return 0;
+    return peak * Math.sin(Math.PI * (h - sunrise) / (sunset - sunrise));
+  }
+  function windOut(h, s){
+    var base = (s === 'summer') ? 0.14 : 0.33;
+    return Math.max(0, base + 0.04 * Math.sin(h / 24 * Math.PI * 4));
+  }
+  function accumulate(h, s, fn){
+    var tot = 0, step = 0.25, t;
+    for(t = step; t <= h + 1e-9; t += step){ tot += fn(t, s) * CAP * step; }
+    return tot;
+  }
+  function hourLabel(h){
+    var r = Math.round(h);
+    if(r === 0 || r === 24) return ['🌙','半夜 12 點'];
+    if(r < 6) return ['🌙','凌晨 ' + r + ' 點'];
+    if(r === 6) return ['🌅','早上 6 點'];
+    if(r < 12) return ['🌤️','上午 ' + r + ' 點'];
+    if(r === 12) return ['🕛','中午 12 點'];
+    if(r < 18) return ['☀️','下午 ' + (r - 12) + ' 點'];
+    if(r === 18) return ['🌆','傍晚 6 點'];
+    return ['🌙','晚上 ' + (r - 12) + ' 點'];
+  }
+
+  function pickDialog(sIn, wIn, accS, accW, done){
+    if(!touched){
+      return [['d-turtle','🐢 海龜助教','拖動時間軸、換個季節，我幫你算月薪！也可以按「快轉一整天」一次看完。']];
+    }
+    if(done){
+      var out = [];
+      if(season === 'winter' && accS > 1){
+        out.push(['d-turtle','🐢 海龜助教','算出來了！這一整天，風電發的電大約是太陽能的 ' + (accW/accS).toFixed(1) + ' 倍。']);
+      } else {
+        out.push(['d-turtle','🐢 海龜助教','夏天風最小，這一天太陽能還小贏一點——但換成秋冬再跑一次，你就知道差多少了。']);
+      }
+      out.push(['d-ray','⚡ 電鱝老師','機器大小是時薪，真正上多久班，才決定月薪。']);
+      return out;
+    }
+    if(sIn <= 0.001){
+      return [['d-ray','⚡ 電鱝老師','別擔心，太陽能不是壞掉——牠天生只上白天班。你看，風電還在發電呢！']];
+    }
+    if(season === 'winter' && wIn > 0.345){
+      return [['d-puffer','🐡 河豚警示員','等等！別以為風電比較穩——風一樣說停就停，只是牠上班的機會比太陽多！']];
+    }
+    if(season === 'winter'){
+      return [['d-ray','⚡ 電鱝老師','秋冬季風一來，風電上班的時間變長，這就是牠容量因數高的原因。']];
+    }
+    return [['d-turtle','🐢 海龜助教','夏天風最小，這時候太陽能反而有機會發得比較多喔！']];
+  }
+
+  function renderDialog(list){
+    var area = $('dialogArea');
+    area.innerHTML = '';
+    for(var i = 0; i < list.length; i++){
+      var d = document.createElement('div');
+      d.className = 'dialog ' + list[i][0];
+      var w = document.createElement('span');
+      w.className = 'who';
+      w.textContent = list[i][1];
+      var t = document.createElement('span');
+      t.textContent = list[i][2];
+      d.appendChild(w); d.appendChild(t);
+      area.appendChild(d);
+    }
+  }
+
+  function update(){
+    var sIn = solarOut(hour, season);
+    var wIn = windOut(hour, season);
+    var accS = accumulate(hour, season, solarOut);
+    var accW = accumulate(hour, season, windOut);
+    var done = (hour >= 23.5);
+    var night = (sIn <= 0.001);
+
+    $('solarInstBar').style.width = Math.min(100, sIn / INST_MAX * 100) + '%';
+    $('windInstBar').style.width  = Math.min(100, wIn / INST_MAX * 100) + '%';
+    $('solarInstTxt').textContent = Math.round(sIn * CAP);
+    $('windInstTxt').textContent  = Math.round(wIn * CAP);
+
+    $('accSolarBar').style.width = Math.min(100, accS / ACC_MAX * 100) + '%';
+    $('accWindBar').style.width  = Math.min(100, accW / ACC_MAX * 100) + '%';
+    $('accSolarNum').textContent = Math.round(accS) + ' 度';
+    $('accWindNum').textContent  = Math.round(accW) + ' 度';
+
+    var badge = $('badge');
+    if(night && accS > 1){
+      if(season === 'winter'){
+        badge.className = 'badge show-win';
+        badge.textContent = '🌬️ 目前累積：風電是太陽能的 ' + (accW/accS).toFixed(1) + ' 倍';
+      } else {
+        badge.className = 'badge show-sum';
+        badge.textContent = '☀️ 夏天風小，這一天太陽能還小贏一點';
+      }
+    } else {
+      badge.className = 'badge';
+      badge.textContent = '';
+    }
+
+    $('scene').classList.toggle('night', night);
+    $('slugAwake').style.display = night ? 'none' : 'block';
+    $('slugSleep').style.display = night ? 'block' : 'none';
+    $('slugGlow').setAttribute('opacity', (0.10 + sIn * 1.5).toFixed(2));
+
+    var hl = hourLabel(hour);
+    $('clock').textContent = hl[0];
+    $('timeTxt').textContent = hl[1];
+
+    renderDialog(pickDialog(sIn, wIn, accS, accW, done));
+  }
+
+  var fanAngle = 0, lastTs = 0;
+  function fanTick(ts){
+    if(!lastTs) lastTs = ts;
+    var dt = (ts - lastTs) / 1000;
+    lastTs = ts;
+    fanAngle = (fanAngle + dt * windOut(hour, season) * 950) % 360;
+    $('fanBlades').setAttribute('transform', 'rotate(' + fanAngle.toFixed(1) + ' 60 40)');
+    requestAnimationFrame(fanTick);
+  }
+  requestAnimationFrame(fanTick);
+
+  $('timeSlider').addEventListener('input', function(e){
+    if(animating) return;
+    touched = true;
+    hour = parseFloat(e.target.value);
+    update();
+  });
+
+  function setSeason(s){
+    if(animating) return;
+    touched = true;
+    season = s;
+    $('btnSummer').classList.toggle('active', s === 'summer');
+    $('btnWinter').classList.toggle('active', s === 'winter');
+    update();
+  }
+  $('btnSummer').addEventListener('click', function(){ setSeason('summer'); });
+  $('btnWinter').addEventListener('click', function(){ setSeason('winter'); });
+
+  $('btnReset').addEventListener('click', function(){
+    if(animating) return;
+    touched = true;
+    hour = 0;
+    $('timeSlider').value = 0;
+    update();
+  });
+
+  $('btnRun').addEventListener('click', function(){
+    if(animating) return;
+    animating = true;
+    touched = true;
+    $('btnRun').disabled = true;
+    $('btnReset').disabled = true;
+    $('timeSlider').disabled = true;
+    hour = 0;
+    $('timeSlider').value = 0;
+    var dur = 4500, t0 = performance.now();
+    function step(now){
+      var p = Math.min(1, (now - t0) / dur);
+      hour = p * 24;
+      $('timeSlider').value = hour;
+      update();
+      if(p < 1){
+        requestAnimationFrame(step);
+      } else {
+        hour = 24;
+        $('timeSlider').value = 24;
+        update();
+        animating = false;
+        $('btnRun').disabled = false;
+        $('btnReset').disabled = false;
+        $('timeSlider').disabled = false;
+      }
+    }
+    requestAnimationFrame(step);
+  });
+
+  var y = new Date().getFullYear();
+  $('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+
+  update();
+})();
+</script>
+</body>
+</html>
