@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：夏月電費階梯大挑戰
+  開發日期：2026-07-09
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，請先來信告知：
+  powerkidplay@gmail.com
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>夏月電費階梯大挑戰</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  body{
+    background:transparent;
+    margin:0;
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  }
+  .tool{
+    max-width:450px;
+    margin:0 auto;
+    background:#F7FBFF;
+    border-radius:22px;
+    box-shadow:0 6px 20px rgba(21,101,192,.12);
+    overflow:hidden;
+    color:#123;
+  }
+  .tool-head{
+    background:linear-gradient(135deg,#1565C0,#1976D2);
+    color:#fff;
+    padding:18px 20px 16px;
+  }
+  .tool-head h1{
+    margin:0;
+    font-size:20px;
+    letter-spacing:.5px;
+  }
+  .tool-head p{
+    margin:6px 0 0;
+    font-size:13px;
+    opacity:.95;
+    line-height:1.6;
+  }
+  .body-pad{padding:16px 18px 20px;}
+
+  /* 階梯 */
+  .stair{
+    display:flex;
+    flex-direction:column-reverse;
+    gap:5px;
+    margin:4px 0 6px;
+  }
+  .step{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    padding:8px 11px;
+    border-radius:11px;
+    background:#E9EEF3;
+    color:#9aa7b2;
+    border:2px solid transparent;
+    transition:background .18s,color .18s,transform .18s,box-shadow .18s;
+  }
+  .step .rng{font-size:13px;font-weight:700;}
+  .step .price{font-size:12px;white-space:nowrap;}
+  .step .price b{font-size:13px;}
+  /* 樓梯往右上升 */
+  .step[data-i="0"]{margin-right:0;}
+  .step[data-i="1"]{margin-right:16px;}
+  .step[data-i="2"]{margin-right:32px;}
+  .step[data-i="3"]{margin-right:48px;}
+  .step[data-i="4"]{margin-right:64px;}
+  .step[data-i="5"]{margin-right:80px;}
+
+  /* 已點亮階：越高階顏色越濃（越貴） */
+  .step.lit{color:#0d2a4a;}
+  .step.lit[data-i="0"]{background:#DFF3E4;}
+  .step.lit[data-i="1"]{background:#CDE7F6;}
+  .step.lit[data-i="2"]{background:#FDECC6;}
+  .step.lit[data-i="3"]{background:#FBD9B0;}
+  .step.lit[data-i="4"]{background:#F7BFB0;}
+  .step.lit[data-i="5"]{background:#F1A9A2;}
+
+  .step.current{
+    border-color:#1565C0;
+    box-shadow:0 3px 12px rgba(21,101,192,.28);
+    transform:scale(1.02);
+  }
+  .step.flash{animation:flash .6s ease;}
+  @keyframes flash{
+    0%{box-shadow:0 0 0 0 rgba(255,193,7,.9);}
+    100%{box-shadow:0 3px 12px rgba(21,101,192,.28);}
+  }
+  .step .here{
+    font-size:10px;font-weight:700;color:#1565C0;
+    background:#fff;border-radius:8px;padding:1px 6px;margin-left:2px;
+  }
+  .price .on{color:#0d2a4a;font-weight:800;}
+  .price .off{opacity:.5;}
+
+  /* 控制區 */
+  .ctrl{margin-top:14px;}
+  .kwh-line{
+    display:flex;align-items:baseline;justify-content:center;gap:6px;
+    margin-bottom:6px;
+  }
+  .kwh-line .num{font-size:30px;font-weight:800;color:#1565C0;line-height:1;}
+  .kwh-line .unit{font-size:14px;color:#567;}
+  input[type=range]{
+    width:100%;
+    -webkit-appearance:none;appearance:none;
+    height:10px;border-radius:6px;
+    background:linear-gradient(90deg,#66BB6A,#FFCA28,#EF5350);
+    outline:none;margin:6px 0 2px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:26px;height:26px;border-radius:50%;
+    background:#fff;border:3px solid #1565C0;cursor:pointer;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:26px;height:26px;border-radius:50%;
+    background:#fff;border:3px solid #1565C0;cursor:pointer;
+  }
+  input[type=range]:focus-visible{box-shadow:0 0 0 3px rgba(21,101,192,.35);}
+  .scale{display:flex;justify-content:space-between;font-size:11px;color:#89939c;margin-top:2px;}
+
+  /* 檢視切換 */
+  .toggle{display:flex;gap:8px;justify-content:center;margin:14px 0 4px;}
+  .toggle button{
+    flex:1;max-width:150px;
+    padding:9px 0;border-radius:11px;cursor:pointer;
+    border:2px solid #1976D2;background:#fff;color:#1976D2;
+    font-family:inherit;font-size:14px;font-weight:700;
+    transition:background .15s,color .15s;
+  }
+  .toggle button.active{background:#1976D2;color:#fff;}
+
+  /* 金額區 */
+  .money{
+    display:flex;gap:10px;margin-top:12px;
+  }
+  .money .card{
+    flex:1;border-radius:13px;padding:11px 8px;text-align:center;
+    border:2px solid #d9e2ea;background:#fff;
+  }
+  .money .card.hi{border-color:#1976D2;background:#EAF3FC;}
+  .money .card .lab{font-size:12px;color:#567;}
+  .money .card .val{font-size:21px;font-weight:800;color:#123;margin-top:2px;}
+  .money .card .val small{font-size:12px;font-weight:600;color:#789;}
+  .diff{
+    text-align:center;margin-top:9px;font-size:13px;color:#345;
+  }
+  .diff b{color:#C62828;font-size:15px;}
+
+  /* 角色對話 */
+  .say{
+    margin-top:14px;border-radius:13px;padding:11px 13px;
+    font-size:14px;line-height:1.6;display:flex;gap:9px;align-items:flex-start;
+    border:2px solid;
+  }
+  .say .ava{font-size:22px;line-height:1.2;flex-shrink:0;}
+  .say.turtle{background:#E8F5E9;border-color:#66BB6A;}
+  .say.ray{background:#E3F2FD;border-color:#1976D2;}
+  .say.puffer{background:#FFEBEE;border-color:#C62828;}
+  .say.jelly{background:#F3E5F5;border-color:#7B1FA2;}
+  .say .who{font-weight:700;margin-right:4px;}
+
+  .foot{
+    text-align:center;font-size:11px;color:#8b96a0;
+    padding:12px 16px 16px;line-height:1.7;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .step,.money .card,.toggle button{transition:none;}
+    .step.flash{animation:none;}
+  }
+</style>
+</head>
+<body>
+<div class="tool">
+  <div class="tool-head">
+    <h1>⚡ 夏月電費階梯大挑戰</h1>
+    <p>拉動滑桿改變一個月用了幾度電，看電費怎麼一階一階往上跳，夏月又比非夏月貴多少。</p>
+  </div>
+
+  <div class="body-pad">
+    <div class="stair" id="stair" aria-hidden="true"></div>
+
+    <div class="ctrl">
+      <div class="kwh-line">
+        <span class="num" id="kwhNum">330</span>
+        <span class="unit">度／月</span>
+      </div>
+      <input type="range" id="slider" min="0" max="1200" step="10" value="330"
+             aria-label="每月用電度數" aria-valuemin="0" aria-valuemax="1200" aria-valuenow="330">
+      <div class="scale"><span>0 度</span><span>600 度</span><span>1200 度</span></div>
+    </div>
+
+    <div class="toggle">
+      <button id="btnNon" class="active" type="button">非夏月</button>
+      <button id="btnSum" type="button">夏月（6–9月）</button>
+    </div>
+
+    <div class="money">
+      <div class="card" id="cardNon">
+        <div class="lab">非夏月總電費</div>
+        <div class="val"><span id="valNon">0</span> <small>元</small></div>
+      </div>
+      <div class="card" id="cardSum">
+        <div class="lab">夏月總電費</div>
+        <div class="val"><span id="valSum">0</span> <small>元</small></div>
+      </div>
+    </div>
+    <div class="diff">夏月比非夏月多付：<b id="valDiff">0</b> 元</div>
+
+    <div class="say turtle" id="say">
+      <span class="ava">🐢</span>
+      <div><span class="who">海龜助教：</span><span id="sayText">拉拉看滑桿，我幫你把每一度的錢加起來——看電費怎麼爬樓梯！</span></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span id="copy">© 2026 電力爸爸的生活筆記</span><br>
+    小工具由電力爸爸開發，數據僅供模擬學習使用。
+  </div>
+</div>
+
+<script>
+(function(){
+  // 六個級距（單月度數版，數值同定稿電價表）
+  var LOWER = [0,120,330,500,700,1000];
+  var UPPER = [120,330,500,700,1000,Infinity];
+  var LABEL = ["120 度以下","121–330 度","331–500 度","501–700 度","701–1000 度","1001 度以上"];
+  var NON   = [1.78,2.26,3.13,4.24,5.27,7.03];
+  var SUM   = [1.78,2.55,3.80,5.14,6.44,8.86];
+
+  var slider = document.getElementById('slider');
+  var kwhNum = document.getElementById('kwhNum');
+  var stair  = document.getElementById('stair');
+  var valNon = document.getElementById('valNon');
+  var valSum = document.getElementById('valSum');
+  var valDiff= document.getElementById('valDiff');
+  var cardNon= document.getElementById('cardNon');
+  var cardSum= document.getElementById('cardSum');
+  var btnNon = document.getElementById('btnNon');
+  var btnSum = document.getElementById('btnSum');
+  var sayBox = document.getElementById('say');
+  var sayText= document.getElementById('sayText');
+
+  var mode = 'non';          // 'non' | 'sum'
+  var lastStep = stepOf(330);
+  var moved = false;         // 是否已拖過滑桿
+
+  // 建立六階
+  var stepEls = [];
+  for(var i=0;i<6;i++){
+    var d = document.createElement('div');
+    d.className = 'step';
+    d.setAttribute('data-i', i);
+    d.innerHTML =
+      '<span class="rng">'+LABEL[i]+'</span>'+
+      '<span class="price" id="price'+i+'"></span>';
+    stair.appendChild(d);
+    stepEls.push(d);
+  }
+
+  function stepOf(kwh){
+    if(kwh<=0) return 0;
+    for(var i=0;i<6;i++){ if(kwh<=UPPER[i]) return i; }
+    return 5;
+  }
+  function total(kwh, rates){
+    var t=0;
+    for(var i=0;i<6;i++){
+      if(kwh>LOWER[i]){
+        var used = Math.min(kwh, UPPER[i]) - LOWER[i];
+        t += used * rates[i];
+      }
+    }
+    return t;
+  }
+  function fmt(n){ return Math.round(n).toLocaleString('en-US'); }
+
+  function renderPrices(){
+    for(var i=0;i<6;i++){
+      var nonOn = mode==='non';
+      document.getElementById('price'+i).innerHTML =
+        '<span class="'+(nonOn?'on':'off')+'">非 '+NON[i].toFixed(2)+'</span>'+
+        ' <span style="opacity:.4">｜</span> '+
+        '<span class="'+(nonOn?'off':'on')+'">夏 '+SUM[i].toFixed(2)+'</span>';
+    }
+  }
+
+  function pickMessage(kwh, step){
+    if(!moved){
+      return {cls:'turtle',ava:'🐢',who:'海龜助教：',
+        txt:'拉拉看滑桿，我幫你把每一度的錢加起來——看電費怎麼爬樓梯！'};
+    }
+    if(kwh>=1001){
+      return {cls:'puffer',ava:'🐡',who:'河豚警示員：',
+        txt:'等等！用到最高階，這樣帳單要爆表啦，快想想怎麼省！'};
+    }
+    if(kwh<=120){
+      return {cls:'jelly',ava:'🪼',who:'節能水母：',
+        txt:'停在最便宜的這一階，夏天也不加價，很棒喔～繼續保持！'};
+    }
+    if(step>lastStep){
+      return {cls:'ray',ava:'⚡',who:'電鱝老師：',
+        txt:'你剛跨過一階，這一度變貴了！'};
+    }
+    if(mode==='sum'){
+      return {cls:'ray',ava:'⚡',who:'電鱝老師：',
+        txt:'看到沒？夏月的高階，比非夏月又貴了一些。'};
+    }
+    return {cls:'ray',ava:'⚡',who:'電鱝老師：',
+      txt:'用越多，上面每一階就越貴，這就是累進電價。'};
+  }
+
+  function showMessage(kwh, step, flashStep){
+    var m = pickMessage(kwh, step);
+    sayBox.className = 'say ' + m.cls;
+    sayBox.innerHTML =
+      '<span class="ava">'+m.ava+'</span><div><span class="who">'+m.who+'</span>'+m.txt+'</div>';
+  }
+
+  function update(flash){
+    var kwh = parseInt(slider.value,10);
+    var step = stepOf(kwh);
+    kwhNum.textContent = kwh;
+    slider.setAttribute('aria-valuenow', kwh);
+
+    // 階梯點亮
+    for(var i=0;i<6;i++){
+      var el = stepEls[i];
+      el.classList.remove('current','flash');
+      if(kwh>LOWER[i] || (i===0 && kwh>=0)){ el.classList.add('lit'); }
+      else { el.classList.remove('lit'); }
+    }
+    // 目前所在階（最高點亮階）標記
+    stepEls[step].classList.add('current');
+    // 加「你在這」
+    for(var j=0;j<6;j++){
+      var rng = stepEls[j].querySelector('.rng');
+      var here = stepEls[j].querySelector('.here');
+      if(j===step && !here){
+        var s=document.createElement('span'); s.className='here'; s.textContent='你在這';
+        stepEls[j].insertBefore(s, stepEls[j].children[1]);
+      } else if(j!==step && here){ here.remove(); }
+    }
+    if(flash && step>lastStep){ stepEls[step].classList.add('flash'); }
+
+    // 金額
+    var tn = total(kwh, NON), ts = total(kwh, SUM);
+    valNon.textContent = fmt(tn);
+    valSum.textContent = fmt(ts);
+    valDiff.textContent = fmt(ts - tn);
+
+    // 高亮目前檢視
+    cardNon.classList.toggle('hi', mode==='non');
+    cardSum.classList.toggle('hi', mode==='sum');
+
+    showMessage(kwh, step);
+    lastStep = step;
+  }
+
+  slider.addEventListener('input', function(){ moved = true; update(true); });
+
+  btnNon.addEventListener('click', function(){
+    mode='non'; btnNon.classList.add('active'); btnSum.classList.remove('active');
+    renderPrices(); update(false);
+  });
+  btnSum.addEventListener('click', function(){
+    mode='sum'; btnSum.classList.add('active'); btnNon.classList.remove('active');
+    renderPrices();
+    // 切到夏月時，即使沒動滑桿也讓電鱝點出差異
+    moved = true; update(false);
+  });
+
+  // 版權年份（起始 2026）
+  var y = new Date().getFullYear();
+  document.getElementById('copy').textContent =
+    '© ' + (y>2026 ? '2026–'+y : '2026') + ' 電力爸爸的生活筆記';
+
+  renderPrices();
+  update(false);
+})();
+</script>
+</body>
+</html>
