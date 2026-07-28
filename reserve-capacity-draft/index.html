@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：備用容量選秀台
+  開發日期：2026-07-28
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，請先來信告知：
+  powerkidplay@gmail.com
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>備用容量選秀台｜電力爸爸的生活筆記</title>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: transparent;
+    margin: 0;
+    padding: 8px;
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  }
+  .app {
+    max-width: 450px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    overflow: hidden;
+    color: #1a1a1a;
+  }
+
+  /* ── 標題列 ── */
+  .top {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .top h1 { font-size: 17px; margin: 0; font-weight: 700; letter-spacing: .5px; }
+  .top .sub { font-size: 11px; opacity: .85; margin-top: 2px; }
+  #timeBtn {
+    background: #FFF9C4; color: #5D4037; border: none;
+    border-radius: 20px; padding: 8px 12px; font-size: 13px; font-weight: 700;
+    cursor: pointer; white-space: nowrap; font-family: inherit;
+    box-shadow: 0 2px 0 rgba(0,0,0,.15); transition: background .2s, transform .1s;
+  }
+  #timeBtn.night { background: #283593; color: #E8EAF6; }
+  #timeBtn:active { transform: translateY(1px); }
+
+  /* ── 儀表區 ── */
+  .gauge { padding: 14px 14px 10px; background: #F5F9FF; }
+  .rateRow { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .rateLabel { font-size: 12px; color: #555; }
+  #rateNum { font-size: 30px; font-weight: 700; line-height: 1; transition: color .3s; }
+  #rateTag {
+    font-size: 11px; padding: 3px 8px; border-radius: 10px;
+    color: #fff; margin-left: auto; font-weight: 700;
+  }
+  .barWrap { position: relative; height: 30px; }
+  .bar {
+    position: absolute; inset: 0;
+    background: #E0E6EC; border-radius: 8px; overflow: hidden;
+  }
+  #fill {
+    height: 100%; width: 9%;
+    background: #C62828;
+    transition: width .45s cubic-bezier(.3,1.3,.5,1), background .35s;
+  }
+  .mark { position: absolute; top: -4px; bottom: -4px; width: 0; }
+  .mark i {
+    position: absolute; top: 0; bottom: 0; left: 0;
+    border-left: 3px solid #37474F; display: block;
+  }
+  .mark.target i { border-left: 3px dashed #2E7D32; }
+  .mark span {
+    position: absolute; top: -1px; left: 5px;
+    font-size: 10px; color: #37474F; white-space: nowrap; font-weight: 700;
+  }
+  .mark.target span { color: #2E7D32; }
+  .mark.target.hit i { border-left-style: solid; box-shadow: 0 0 8px #66BB6A; }
+  .axis { display: flex; justify-content: space-between; font-size: 10px; color: #78909C; margin-top: 16px; }
+  .totalLine { font-size: 12px; color: #37474F; margin-top: 4px; }
+  .totalLine b { color: #1565C0; font-size: 14px; }
+
+  /* ── 名單區 ── */
+  .sec { padding: 10px 14px 0; }
+  .secTitle {
+    font-size: 13px; font-weight: 700; color: #1565C0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .secTitle .count { font-size: 11px; color: #78909C; font-weight: 400; }
+  .baseChip {
+    background: #ECEFF1; border: 1px dashed #B0BEC5; border-radius: 10px;
+    padding: 7px 10px; font-size: 11.5px; color: #546E7A; margin: 6px 0;
+    line-height: 1.5;
+  }
+  .baseChip b { color: #37474F; font-size: 13px; }
+  #list {
+    display: flex; flex-wrap: wrap; gap: 5px;
+    min-height: 56px; align-content: flex-start;
+    background: #FAFCFF; border: 1px solid #E3EAF2; border-radius: 10px;
+    padding: 7px; margin-bottom: 4px;
+  }
+  #list .empty { font-size: 12px; color: #90A4AE; margin: auto; }
+  .chip {
+    border-radius: 8px; padding: 4px 7px; font-size: 12px; font-weight: 700;
+    cursor: pointer; user-select: none; border: 1.5px solid;
+    display: flex; align-items: center; gap: 3px;
+    animation: pop .3s cubic-bezier(.3,1.6,.5,1);
+  }
+  .chip:active { transform: scale(.92); }
+  .chip.gas   { background:#FFF3E0; border-color:#FB8C00; color:#E65100; }
+  .chip.solar { background:#FFFDE7; border-color:#FBC02D; color:#F57F17; }
+  .chip.wind  { background:#E1F5FE; border-color:#039BE5; color:#01579B; }
+  .chip.off   { background:#ECEFF1 !important; border-color:#B0BEC5 !important; color:#90A4AE !important; }
+  .chip .v { font-variant-numeric: tabular-nums; }
+  @keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .hint { font-size: 10.5px; color: #90A4AE; margin: 0 0 6px; }
+
+  /* ── 板凳（電源卡） ── */
+  .cards { display: flex; gap: 6px; }
+  .card {
+    flex: 1; border: 2px solid; border-radius: 12px; padding: 8px 4px;
+    text-align: center; cursor: pointer; background: #fff;
+    font-family: inherit; transition: transform .1s, box-shadow .2s, opacity .2s;
+  }
+  .card:active { transform: translateY(2px); }
+  .card:disabled { opacity: .45; cursor: not-allowed; }
+  .card .ico { font-size: 20px; line-height: 1.2; }
+  .card .nm { font-size: 12px; font-weight: 700; margin-top: 1px; }
+  .card .calc { font-size: 10px; color: #78909C; margin-top: 4px; line-height: 1.4; }
+  .card .calc b { font-size: 15px; }
+  .card.gas   { border-color:#FB8C00; } .card.gas .nm{ color:#E65100; }  .card.gas .calc b{ color:#E65100; }
+  .card.solar { border-color:#FBC02D; } .card.solar .nm{ color:#F57F17; } .card.solar .calc b{ color:#F57F17; }
+  .card.wind  { border-color:#039BE5; } .card.wind .nm{ color:#01579B; }  .card.wind .calc b{ color:#01579B; }
+  .card.zero  { border-color:#B0BEC5 !important; background:#F5F5F5; }
+  .card.zero .nm, .card.zero .calc b { color:#90A4AE !important; }
+
+  /* ── 角色對話框 ── */
+  #talk {
+    margin: 10px 14px 0; padding: 9px 11px; border-radius: 12px;
+    border: 2px solid #66BB6A; background: #E8F5E9;
+    font-size: 13px; line-height: 1.65; min-height: 60px;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  #talk .face { font-size: 21px; line-height: 1.3; }
+  #talk .who { font-size: 11px; font-weight: 700; opacity: .8; display: block; }
+  #talk.eel    { border-color:#1976D2; background:#E3F2FD; }
+  #talk.puffer { border-color:#C62828; background:#FFEBEE; }
+
+  /* ── 底部 ── */
+  .foot { padding: 10px 14px 14px; }
+  #resetBtn {
+    width: 100%; padding: 9px; border-radius: 10px; border: 1.5px solid #B0BEC5;
+    background: #fff; color: #546E7A; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+  #resetBtn:active { background: #ECEFF1; }
+  .notes { font-size: 10.5px; color: #90A4AE; line-height: 1.7; margin-top: 9px; }
+  .copy { font-size: 10px; color: #B0BEC5; text-align: center; margin-top: 8px; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="top">
+    <div>
+      <h1>🏗️ 備用容量選秀台</h1>
+      <div class="sub">把電源放進名單，看分數當場縮水</div>
+    </div>
+    <button id="timeBtn">☀️ 白天</button>
+  </div>
+
+  <!-- 儀表 -->
+  <div class="gauge">
+    <div class="rateRow">
+      <span class="rateLabel">備用容量率</span>
+      <span id="rateNum">-2.5%</span>
+      <span id="rateTag">還不夠</span>
+    </div>
+    <div class="barWrap">
+      <div class="bar"><div id="fill"></div></div>
+      <div class="mark" id="mLoad"><i></i><span>尖峰負載</span></div>
+      <div class="mark target" id="mTarget"><i></i><span>15% 目標</span></div>
+    </div>
+    <div class="axis"><span>3,900</span><span>5,000（萬瓩）</span></div>
+    <div class="totalLine">名單淨尖峰能力合計 <b id="totalNum">4,000</b> 萬瓩　｜　全年尖峰負載 4,101 萬瓩</div>
+  </div>
+
+  <!-- 名單 -->
+  <div class="sec">
+    <div class="secTitle"><span>📋 備用容量名單</span><span class="count" id="cnt">0 / 30 張</span></div>
+    <div class="baseChip">🌊 其他電源（核能、燃煤、抽蓄水力、地熱、生質能⋯⋯）已折算計入 <b>4,000</b> 萬瓩</div>
+    <div id="list"><span class="empty">還沒放任何電源</span></div>
+    <p class="hint">點名單裡的卡片可以退回板凳</p>
+  </div>
+
+  <!-- 板凳 -->
+  <div class="sec">
+    <div class="secTitle"><span>🪑 板凳上的電源</span></div>
+    <div class="cards" style="margin-top:6px">
+      <button class="card gas" data-t="gas">
+        <div class="ico">🦐</div><div class="nm">複循環燃氣</div>
+        <div class="calc">裝置 100 →<br><b id="fGas">99</b></div>
+      </button>
+      <button class="card solar" data-t="solar">
+        <div class="ico">☀️</div><div class="nm">太陽光電</div>
+        <div class="calc">裝置 100 →<br><b id="fSolar">25</b></div>
+      </button>
+      <button class="card wind" data-t="wind">
+        <div class="ico">🐬</div><div class="nm">離岸風力</div>
+        <div class="calc">裝置 100 →<br><b id="fWind">11</b></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- 角色 -->
+  <div id="talk">
+    <span class="face">🐢</span>
+    <span><span class="who">海龜助教</span><span id="talkTxt">先看看名單有多深——現在只有其他電源打底，還不夠喔。</span></span>
+  </div>
+
+  <div class="foot">
+    <button id="resetBtn">🔄 重新排名單</button>
+    <div class="notes">
+      ※ 這裡只挑三種差異最明顯的電源。臺灣還有核能、燃煤、抽蓄水力、地熱、生質能等各種電源，都已折算計入上方的「其他電源」。<br>
+      ※「其他電源 4,000 萬瓩」為方便遊玩的假設起點，非官方數據。尖峰負載 4,101 萬瓩取自 2026 年 5 月月尖峰。淨尖峰能力因子依經濟部公告。
+    </div>
+    <div class="copy" id="copy">© 2026 電力爸爸的生活筆記</div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var BASE = 4000, LOAD = 4101, TARGET = LOAD * 1.15;   // 4716.15
+  var AX0 = 3900, AX1 = 5000, MAXCARD = 30;
+  var FACTOR = { gas:99, solar:25, wind:11 };
+  var NAME   = { gas:"燃氣", solar:"太陽", wind:"風力" };
+  var ICON   = { gas:"🦐", solar:"☀️", wind:"🐬" };
+
+  var list = [], night = false, seq = 0, animating = false, sawPositive = false;
+
+  function el(id){ return document.getElementById(id); }
+  var listEl = el("list"), fill = el("fill"), rateNum = el("rateNum"),
+      rateTag = el("rateTag"), totalNum = el("totalNum"), cntEl = el("cnt"),
+      talk = el("talk"), talkTxt = el("talkTxt"), timeBtn = el("timeBtn"),
+      mTarget = el("mTarget");
+
+  function pct(v){ return Math.max(0, Math.min(100, (v - AX0) / (AX1 - AX0) * 100)); }
+  el("mLoad").style.left = pct(LOAD) + "%";
+  mTarget.style.left     = pct(TARGET) + "%";
+
+  function total(){
+    var t = BASE;
+    for (var i = 0; i < list.length; i++) t += list[i].cur;
+    return t;
+  }
+  function fmt(n){ return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+
+  function say(who, txt){
+    var f = { turtle:["🐢","海龜助教",""], eel:["⚡","電鱝老師","eel"], puffer:["🐡","河豚警示員","puffer"] }[who];
+    talk.className = f[2];
+    talk.querySelector(".face").textContent = f[0];
+    talk.querySelector(".who").textContent = f[1];
+    talkTxt.textContent = txt;
+  }
+
+  function render(){
+    listEl.innerHTML = "";
+    if (!list.length) {
+      var e = document.createElement("span");
+      e.className = "empty"; e.textContent = "還沒放任何電源";
+      listEl.appendChild(e);
+    } else {
+      list.forEach(function(item){
+        var c = document.createElement("div");
+        c.className = "chip " + item.t + (item.cur === 0 ? " off" : "");
+        c.innerHTML = ICON[item.t] + NAME[item.t] + ' <span class="v">' + item.cur + '</span>';
+        c.title = "點一下退回板凳";
+        c.addEventListener("click", function(){ remove(item.id); });
+        listEl.appendChild(c);
+      });
+    }
+    cntEl.textContent = list.length + " / " + MAXCARD + " 張";
+
+    var t = total(), rate = (t - LOAD) / LOAD * 100;
+    totalNum.textContent = fmt(t);
+    rateNum.textContent = rate.toFixed(1) + "%";
+    fill.style.width = pct(t) + "%";
+
+    var col, tag;
+    if (rate < 0)       { col = "#C62828"; tag = "還不夠"; }
+    else if (rate < 15) { col = "#F9A825"; tag = "剛好打平"; }
+    else                { col = "#2E7D32"; tag = "達標！"; }
+    fill.style.background = col;
+    rateNum.style.color = col;
+    rateTag.style.background = col;
+    rateTag.textContent = tag;
+    mTarget.className = "mark target" + (rate >= 15 ? " hit" : "");
+
+    el("fSolar").textContent = night ? 0 : 25;
+    document.querySelector(".card.solar").classList.toggle("zero", night);
+    var full = list.length >= MAXCARD;
+    Array.prototype.forEach.call(document.querySelectorAll(".card"), function(b){ b.disabled = full; });
+
+    return rate;
+  }
+
+  function report(rate){
+    if (rate < 0) {
+      say("puffer", "危險！名單比用電還少，這樣蓋不夠電廠！");
+    } else if (rate >= 15) {
+      say("eel", "很好，這份名單撐得住最忙的那一刻。");
+    } else if (!sawPositive) {
+      sawPositive = true;
+      say("eel", "剛好打平還不算安全，餘裕要再厚一點。");
+    } else {
+      say("turtle", "目前備用容量率 " + rate.toFixed(1) + "%，再放幾個看看。");
+    }
+  }
+
+  function add(t){
+    if (animating) return;
+    if (list.length >= MAXCARD) {
+      say("turtle", "名單滿 30 張了，先退幾張再放吧。");
+      return;
+    }
+    list.push({ id: ++seq, t: t, cur: (t === "solar" && night) ? 0 : FACTOR[t] });
+    report(render());
+  }
+
+  function remove(id){
+    if (animating) return;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) { list.splice(i, 1); break; }
+    }
+    var rate = render();
+    if (rate < 0) say("puffer", "危險！名單比用電還少，這樣蓋不夠電廠！");
+    else say("turtle", "退回去了，目前備用容量率 " + rate.toFixed(1) + "%。");
+  }
+
+  function toggleTime(){
+    if (animating) return;
+    night = !night;
+    timeBtn.textContent = night ? "🌙 夜間" : "☀️ 白天";
+    timeBtn.classList.toggle("night", night);
+
+    var solars = list.filter(function(x){ return x.t === "solar"; });
+    if (!solars.length) {
+      render();
+      say("turtle", night ? "現在是夜間。名單裡還沒有太陽光電，先放幾張試試。" : "回到白天了。");
+      return;
+    }
+    animating = true;
+    solars.forEach(function(item, i){
+      setTimeout(function(){
+        item.cur = night ? 0 : FACTOR.solar;
+        var rate = render();
+        if (i === solars.length - 1) {
+          animating = false;
+          if (night) say("eel", "太陽下山，那幾張的夜間因子是 0%——它們白天有幫忙，只是這一刻幫不上。");
+          else       say("eel", "太陽出來了，那幾張又算得進去了，餘裕回到 " + rate.toFixed(1) + "%。");
+        }
+      }, i * 110);
+    });
+    render();
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(".card"), function(b){
+    b.addEventListener("click", function(){ add(b.dataset.t); });
+  });
+  timeBtn.addEventListener("click", toggleTime);
+  el("resetBtn").addEventListener("click", function(){
+    if (animating) return;
+    list = []; sawPositive = false;
+    render();
+    say("turtle", "名單清空了。先看看名單有多深——現在只有其他電源打底，還不夠喔。");
+  });
+
+  var y = new Date().getFullYear();
+  el("copy").textContent = "© " + (y > 2026 ? "2026–" + y : "2026") + " 電力爸爸的生活筆記";
+
+  render();
+})();
+</script>
+</body>
+</html>
