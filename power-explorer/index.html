@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>電力系統單日探索器｜電力爸爸的生活筆記</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:transparent;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:#212121;-webkit-text-size-adjust:100%}
+#app{max-width:920px;margin:0 auto;padding:12px;background:#fff;border-radius:14px;box-shadow:0 2px 14px rgba(0,0,0,.08)}
+h1{font-size:17px;color:#1565C0;margin-bottom:2px}
+.sub{font-size:12px;color:#757575;margin-bottom:10px;line-height:1.5}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+select,button{font-family:inherit;font-size:13px;border-radius:8px;border:1px solid #CFD8DC;background:#fff;padding:6px 9px;color:#212121;cursor:pointer}
+select{min-width:150px}
+.chip{font-size:12px;padding:5px 10px;border-radius:999px;border:1.5px solid #CFD8DC;background:#fff;color:#607D8B;cursor:pointer;user-select:none;white-space:nowrap}
+.chip.on{color:#fff;border-color:transparent}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+#wrap{position:relative;width:100%}
+canvas{width:100%;display:block;border-radius:8px;touch-action:none}
+#slider{width:100%;margin:8px 0 4px;accent-color:#1565C0}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:6px;margin-bottom:8px}
+.cell{background:#F5F7F9;border-radius:9px;padding:7px 9px}
+.cell .k{font-size:10.5px;color:#78909C;letter-spacing:.3px}
+.cell .v{font-size:15px;font-weight:700;color:#1565C0;margin-top:1px}
+.cell .v small{font-size:10px;font-weight:400;color:#90A4AE}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700}
+.panel{background:#F5F7F9;border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.7;color:#37474F;margin-bottom:8px}
+.panel h3{font-size:12.5px;color:#1565C0;margin-bottom:3px}
+.panel table{width:100%;border-collapse:collapse;font-size:11.5px}
+.panel td{padding:2px 4px;border-bottom:1px solid #E3E8EB}
+.panel td:last-child{text-align:right;color:#C62828;font-weight:600}
+.foot{font-size:10.5px;color:#90A4AE;line-height:1.6;margin-top:8px;border-top:1px solid #ECEFF1;padding-top:7px}
+.err{background:#FFEBEE;color:#C62828;padding:10px;border-radius:8px;font-size:13px}
+@media(max-width:520px){#app{padding:9px}h1{font-size:15px}.cell .v{font-size:13.5px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>⚡ 電力系統單日探索器</h1>
+  <p class="sub">台電每 10 分鐘資料，一天 144 個點。拖動下方時間軸，看那一刻系統的真實狀態。</p>
+
+  <div class="bar">
+    <select id="day"></select>
+    <button id="prev">◀ 前一天</button>
+    <button id="next">後一天 ▶</button>
+    <button id="play">▶ 播放</button>
+  </div>
+
+  <div class="bar" style="background:#F5F7F9;border-radius:10px;padding:7px 9px">
+    <span style="font-size:12px;color:#546E7A;font-weight:700">🔍 能源焦點</span>
+    <select id="fuel"></select>
+    <button id="fuelmode">切換為長條圖</button>
+    <span style="font-size:11px;color:#90A4AE">以負載為基底，疊上單一能源看它撐了多少</span>
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="read" id="read"></div>
+
+  <div id="wrap"><canvas id="cv"></canvas></div>
+  <input type="range" id="slider" min="0" max="143" value="84">
+
+  <div class="panel" id="analysis" style="display:none"></div>
+  <div class="panel" id="story"></div>
+  <div class="panel" id="units" style="display:none"></div>
+
+  <p class="foot">
+    資料來源：台電公司網站每 10 分鐘「今日電力資訊」與「今日用電曲線（能源別）」。<br>
+    <b>備轉容量率為逐點自行計算</b>：（即時最高供電能力 − 瞬時用電量）÷ 瞬時用電量。
+    台電公布的是當日單一數值，逐點計算才看得到全天的起伏。<br>
+    燈號判準：綠燈 &gt;10%｜黃燈 6–10%｜橘燈 &lt;6%｜紅燈 備轉 ≦90 萬瓩｜黑燈 ≦50 萬瓩。
+  </p>
+</div>
+
+<script>
+"use strict";
+const DATA_DIR = "data";
+const LIGHT = {
+  green:{n:"綠燈 供電充裕",c:"#66BB6A"}, yellow:{n:"黃燈 供電吃緊",c:"#F9A825"},
+  orange:{n:"橘燈 供電警戒",c:"#EF6C00"}, red:{n:"紅燈 限電警戒",c:"#D32F2F"},
+  black:{n:"黑燈 限電準備",c:"#424242"}
+};
+const BAND = {green:null,yellow:"rgba(255,241,118,.55)",orange:"rgba(255,183,77,.6)",
+              red:"rgba(239,83,80,.45)",black:"rgba(97,97,97,.4)"};
+const LAYERS = [
+  {k:"load",     t:"總負載",       c:"#1565C0", type:"line",  on:true},
+  {k:"net_load", t:"淨負載",       c:"#5E35B1", type:"line",  on:true, dash:[6,4]},
+  {k:"cap",      t:"供電能力",     c:"#90A4AE", type:"line",  on:true},
+  {k:"solar",    t:"太陽光電",     c:"#F9A825", type:"area",  on:true},
+  {k:"pumped",   t:"抽蓄水力",     c:"#0288D1", type:"bipolar",on:false},
+  {k:"fuel",     t:"能源別堆疊",   c:"#43A047", type:"stack", on:false},
+  {k:"rate",     t:"備轉容量率",   c:"#212121", type:"right", on:true},
+  {k:"bands",    t:"燈號色帶",     c:"#EF6C00", type:"band",  on:true}
+];
+/* 能源焦點：公版分析文字。{ } 內為套入的數據，特性句依能源型態切換。 */
+const FUEL_TRAIT = {
+  "太陽光電":{kind:"intermittent",
+    tip:"太陽光電只在白天發電，日落後歸零。它壓低的是<b>日間</b>負載，夜尖峰完全幫不上忙。"},
+  "風力":{kind:"intermittent",
+    tip:"風力不分晝夜都可能發電，但出力隨風速起伏，冬季東北季風時最強、夏季最弱。"},
+  "抽蓄水力":{kind:"storage",
+    tip:"抽蓄水力是雙向的：離峰與中午太陽光電充沛時<b>抽水儲能</b>（出力為負），尖峰時<b>放水發電</b>。它不產生新的電，是把電從一個時段搬到另一個時段。"},
+  "核能":{kind:"base",
+    tip:"核能屬基載，出力全天幾乎不變，不隨負載起伏調整。"},
+  "燃煤":{kind:"base",
+    tip:"燃煤屬基載到中載，升降載慢，通常維持穩定出力，靠燃氣與抽蓄去追負載變化。"},
+  "燃氣":{kind:"follow",
+    tip:"燃氣機組是主要的<b>負載追隨</b>電源，太陽光電退場後的缺口多半由它補上。"},
+  "民營電廠":{kind:"follow",tip:"民營電廠依購售電合約調度，出力型態接近同型式的台電機組。"},
+  "汽電共生":{kind:"base",tip:"汽電共生以廠內製程蒸汽需求為主，餘電售予系統，出力相對穩定。"},
+  "水力":{kind:"follow",tip:"慣常水力受水情影響，可快速起停，常用於尖峰時段支援。"},
+  "燃油":{kind:"peak",tip:"燃油成本高，多作為尖載或離島供電使用，平時出力極低。"},
+  "地熱":{kind:"base",tip:"地熱不受天候影響，可全天穩定發電，目前裝置容量仍小。"},
+  "生質能":{kind:"base",tip:"生質能出力穩定，規模小，主要來自垃圾與沼氣發電。"},
+  "儲能":{kind:"storage",tip:"電池儲能反應最快，用於調頻與短時尖峰支援，充放電時間尺度比抽蓄短。"}
+};
+const $ = s => document.querySelector(s);
+let D=null, idx=[], cur=84, timer=null, dpr=1, focusFuel="", focusBar=false;
+
+/* ── 版面 ───────────────────────────────────────────── */
+function chips(){
+  $("#chips").innerHTML = "";
+  LAYERS.forEach(L=>{
+    const b=document.createElement("span");
+    b.className="chip"+(L.on?" on":""); b.textContent=L.t;
+    if(L.on){b.style.background=L.c;}
+    b.onclick=()=>{L.on=!L.on; b.classList.toggle("on",L.on);
+      b.style.background=L.on?L.c:"#fff"; draw();};
+    $("#chips").appendChild(b);
+  });
+}
+const has = k => LAYERS.find(l=>l.k===k).on && (k==="rate"||k==="bands"||k==="fuel"||D.series[k]);
+
+/* ── 繪圖 ───────────────────────────────────────────── */
+function draw(){
+  if(!D) return;
+  const cv=$("#cv"), W=cv.clientWidth||600, H=Math.max(260,Math.min(400,W*0.52));
+  dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  cv.style.height=H+"px";
+  const g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
+  g.clearRect(0,0,W,H); g.fillStyle="#fff"; g.fillRect(0,0,W,H);
+
+  const P={l:46,r:44,t:12,b:24}, w=W-P.l-P.r, h=H-P.t-P.b, N=D.times.length;
+  const X=i=>P.l+w*i/(N-1);
+
+  // 左軸範圍
+  let mx=0,mn=0;
+  ["load","net_load","cap","solar"].forEach(k=>{ if(has(k))
+    D.series[k].forEach(v=>{ if(v!=null&&v>mx)mx=v; }); });
+  if(has("pumped")) D.series.pumped.forEach(v=>{ if(v!=null){if(v>mx)mx=v; if(v<mn)mn=v;} });
+  if(has("fuel")&&D.fuel){ for(let i=0;i<N;i++){ let s=0;
+      D.fuel_order.forEach(f=>{const v=D.fuel[f][i]; if(v>0)s+=v;}); if(s>mx)mx=s; } }
+  if(focusFuel&&D.fuel&&D.fuel[focusFuel])
+    D.fuel[focusFuel].forEach(v=>{ if(v!=null){ if(v>mx)mx=v; if(v<mn)mn=v; } });
+  if(mx===0)mx=1;
+  mx*=1.08; mn=mn<0?mn*1.15:0;
+  const Y=v=>P.t+h*(1-(v-mn)/(mx-mn));
+  const maxRate=Math.max(30,Math.min(100,Math.max(...D.series.reserve_rate.filter(v=>v!=null))*1.15));
+  const YR=v=>P.t+h*(1-v/maxRate);
+
+  // 燈號色帶
+  if(has("bands")){
+    for(let i=0;i<N;i++){ const b=BAND[D.light[i]]; if(!b) continue;
+      g.fillStyle=b; g.fillRect(X(i)-w/(N-1)/2, P.t, w/(N-1)+0.7, h); }
+  }
+  // 格線
+  g.strokeStyle="#ECEFF1"; g.lineWidth=1; g.font="10px sans-serif";
+  for(let i=0;i<=24;i+=4){ const x=P.l+w*i/24;
+    g.beginPath(); g.moveTo(x,P.t); g.lineTo(x,P.t+h); g.stroke();
+    g.fillStyle="#90A4AE"; g.textAlign="center";
+    g.fillText(String(i).padStart(2,"0")+":00", x, H-8); }
+  for(let s=0;s<=4;s++){ const v=mn+(mx-mn)*s/4, y=Y(v);
+    g.strokeStyle="#ECEFF1"; g.beginPath(); g.moveTo(P.l,y); g.lineTo(P.l+w,y); g.stroke();
+    g.fillStyle="#90A4AE"; g.textAlign="right"; g.fillText(Math.round(v).toLocaleString(),P.l-4,y+3); }
+  if(has("rate")){ for(let s=0;s<=4;s++){ const v=maxRate*s/4;
+    g.fillStyle="#B0BEC5"; g.textAlign="left"; g.fillText(v.toFixed(0)+"%",P.l+w+4,YR(v)+3); } }
+
+  // 能源別堆疊
+  if(has("fuel")&&D.fuel){
+    const base=new Array(N).fill(0);
+    D.fuel_order.forEach(f=>{
+      const arr=D.fuel[f].map(v=>v>0?v:0);
+      g.beginPath(); g.moveTo(X(0),Y(base[0]));
+      for(let i=0;i<N;i++) g.lineTo(X(i),Y(base[i]+arr[i]));
+      for(let i=N-1;i>=0;i--) g.lineTo(X(i),Y(base[i]));
+      g.closePath(); g.fillStyle=(D.fuel_color&&D.fuel_color[f])||"#B0BEC5";
+      g.globalAlpha=.85; g.fill(); g.globalAlpha=1;
+      for(let i=0;i<N;i++) base[i]+=arr[i];
+    });
+  }
+  // 能源焦點：以負載為基底，疊上單一能源（區塊或長條）
+  if(focusFuel&&D.fuel&&D.fuel[focusFuel]){
+    const arr=D.fuel[focusFuel], col=(D.fuel_color&&D.fuel_color[focusFuel])||"#43A047";
+    const z=Y(0), bw=w/(N-1);
+    if(focusBar){
+      for(let i=0;i<N;i++){ const v=arr[i]; if(v==null) continue;
+        g.fillStyle=col; g.globalAlpha=v>=0?.8:.5;
+        g.fillRect(X(i)-bw/2, Math.min(z,Y(v)), bw+0.6, Math.abs(Y(v)-z)); }
+      g.globalAlpha=1;
+    }else{
+      g.beginPath(); g.moveTo(X(0),z);
+      for(let i=0;i<N;i++) g.lineTo(X(i),Y(arr[i]||0));
+      g.lineTo(X(N-1),z); g.closePath();
+      g.fillStyle=col; g.globalAlpha=.55; g.fill(); g.globalAlpha=1;
+      g.beginPath(); g.strokeStyle=col; g.lineWidth=1.8;
+      arr.forEach((v,i)=> i?g.lineTo(X(i),Y(v||0)):g.moveTo(X(i),Y(v||0)));
+      g.stroke();
+    }
+    if(mn<0){ g.strokeStyle="#546E7A"; g.lineWidth=1;
+      g.beginPath(); g.moveTo(P.l,z); g.lineTo(P.l+w,z); g.stroke(); }
+  }
+  // 太陽光電面積
+  if(has("solar")&&focusFuel!=="太陽光電"){
+    g.beginPath(); g.moveTo(X(0),Y(0));
+    for(let i=0;i<N;i++) g.lineTo(X(i),Y(D.series.solar[i]||0));
+    g.lineTo(X(N-1),Y(0)); g.closePath();
+    g.fillStyle="rgba(253,216,53,.55)"; g.fill();
+  }
+  // 抽蓄雙向
+  if(has("pumped")){
+    const z=Y(0);
+    for(let i=0;i<N;i++){ const v=D.series.pumped[i]; if(v==null) continue;
+      g.fillStyle=v>=0?"rgba(0,131,143,.85)":"rgba(77,208,225,.85)";
+      g.fillRect(X(i)-w/(N-1)/2, Math.min(z,Y(v)), w/(N-1)+0.7, Math.abs(Y(v)-z)); }
+    g.strokeStyle="#546E7A"; g.lineWidth=1;
+    g.beginPath(); g.moveTo(P.l,z); g.lineTo(P.l+w,z); g.stroke();
+  }
+  // 折線
+  LAYERS.filter(l=>l.type==="line"&&l.on&&D.series[l.k]).forEach(L=>{
+    g.beginPath(); g.strokeStyle=L.c; g.lineWidth=L.k==="load"?2.4:1.8;
+    g.setLineDash(L.dash||[]);
+    let started=false;
+    D.series[L.k].forEach((v,i)=>{ if(v==null){started=false;return;}
+      started?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)); started=true; });
+    g.stroke(); g.setLineDash([]);
+  });
+  // 備轉率（右軸）
+  if(has("rate")){
+    g.beginPath(); g.strokeStyle="#212121"; g.lineWidth=1.9; g.setLineDash([5,3]);
+    let st=false;
+    D.series.reserve_rate.forEach((v,i)=>{ if(v==null){st=false;return;}
+      st?g.lineTo(X(i),YR(v)):g.moveTo(X(i),YR(v)); st=true; });
+    g.stroke(); g.setLineDash([]);
+    [[10,"#2E7D32"],[6,"#EF6C00"]].forEach(([v,c])=>{
+      if(v>maxRate) return;
+      g.strokeStyle=c; g.lineWidth=1; g.setLineDash([2,3]);
+      g.beginPath(); g.moveTo(P.l,YR(v)); g.lineTo(P.l+w,YR(v)); g.stroke(); g.setLineDash([]); });
+  }
+  // 游標
+  const cx=X(cur);
+  g.strokeStyle="#C62828"; g.lineWidth=1.4;
+  g.beginPath(); g.moveTo(cx,P.t); g.lineTo(cx,P.t+h); g.stroke();
+  if(has("load")){ g.fillStyle="#C62828"; g.beginPath();
+    g.arc(cx,Y(D.series.load[cur]),4,0,7); g.fill(); }
+}
+
+/* ── 讀數 ───────────────────────────────────────────── */
+function readout(){
+  const s=D.series, i=cur, L=LIGHT[D.light[i]];
+  const f=(v,d=0)=>v==null?"—":Number(v).toLocaleString(undefined,
+      {minimumFractionDigits:d,maximumFractionDigits:d});
+  const cells=[
+    ["時間", D.times[i], ""],
+    ["瞬時用電量", f(s.load[i],0), "萬瓩"],
+    ["供電能力", f(s.cap[i],0), "萬瓩"],
+    ["備轉容量", f(s.reserve[i],0), "萬瓩"],
+    ["備轉容量率", f(s.reserve_rate[i],2)+"%", ""],
+  ];
+  if(s.solar) cells.push(["太陽光電", f(s.solar[i],0), "萬瓩"]);
+  if(s.net_load) cells.push(["淨負載", f(s.net_load[i],0), "萬瓩"]);
+  if(s.solar_share) cells.push(["光電貢獻率", f(s.solar_share[i],1)+"%", ""]);
+  if(s.pumped){ const v=s.pumped[i];
+    cells.push(["抽蓄水力", (v>=0?"發電 ":"抽水 ")+f(Math.abs(v),0), "萬瓩"]); }
+  $("#read").innerHTML = cells.map(([k,v,u])=>
+    `<div class="cell"><div class="k">${k}</div><div class="v">${v}${u?` <small>${u}</small>`:""}</div></div>`
+  ).join("") +
+    `<div class="cell"><div class="k">供電燈號</div><div class="v">
+       <span class="badge" style="background:${L.c};color:${D.light[i]==="yellow"?"#4E342E":"#fff"}">${L.n}</span>
+     </div></div>`;
+  $("#slider").value=i;
+}
+
+/* ── 能源焦點的自動分析（公版文字 ＋ 套數據）────────── */
+function analysis(){
+  const box=$("#analysis");
+  if(!focusFuel||!D.fuel||!D.fuel[focusFuel]){ box.style.display="none"; return; }
+  const arr=D.fuel[focusFuel], load=D.series.load, N=arr.length, m=D.marks;
+  const T=D.times, trait=FUEL_TRAIT[focusFuel]||{kind:"other",tip:""};
+  const n=(v,d=0)=>Number(v).toLocaleString(undefined,
+    {minimumFractionDigits:d,maximumFractionDigits:d});
+  const at=t=>{ const i=T.indexOf(t); return i<0?null:i; };
+  const share=i=>load[i]?arr[i]/load[i]*100:0;
+
+  // 統計
+  let iMax=0,iMin=0;
+  for(let i=0;i<N;i++){ if(arr[i]>arr[iMax])iMax=i; if(arr[i]<arr[iMin])iMin=i; }
+  const energy=arr.reduce((s,v)=>s+(v>0?v:0),0)/6;          // 萬瓩·10min → 萬度
+  const consumed=arr.reduce((s,v)=>s+(v<0?-v:0),0)/6;
+  const loadEnergy=load.reduce((s,v)=>s+(v||0),0)/6;
+  const eShare=loadEnergy?energy/loadEnergy*100:0;
+  const iPeak=at(m.day_peak?m.day_peak.t:m.peak.t);
+  const iNight=m.night_peak?at(m.night_peak.t):null;
+  const iLow=at(m.min_reserve.t);
+
+  let h=`<h3>🔍 ${focusFuel}　當日貢獻分析</h3>`;
+  h+=`<b>${focusFuel}</b>當日最高出力發生於 <b>${T[iMax]}</b>，達 <b>${n(arr[iMax])} 萬瓩</b>，`+
+     `占當時系統負載的 <b>${n(share(iMax),1)}%</b>。`;
+  h+=`全日發電量約 <b>${n(energy)} 萬度</b>，約占當日總用電量的 <b>${n(eShare,1)}%</b>。`;
+  if(consumed>1){
+    const net=energy-consumed;
+    h+=`同日抽水／充電用掉約 <b>${n(consumed)} 萬度</b>，`+
+       (net>=0 ? `全日淨貢獻 <b>${n(net)} 萬度</b>。`
+               : `<b>用掉的比發出的多 ${n(-consumed+energy<0?consumed-energy:0)} 萬度</b>，`+
+                 `這是正常的：儲能的價值在於把電從離峰搬到尖峰，過程中必然有損失，不是用來增加總發電量。`);
+  }
+  h+=`<br>`;
+  if(iPeak!=null) h+=`日尖峰（${T[iPeak]}，負載 ${n(load[iPeak])} 萬瓩）時出力 `+
+     `<b>${n(arr[iPeak])} 萬瓩</b>，貢獻率 <b>${n(share(iPeak),1)}%</b>。`;
+  if(iNight!=null) h+=`夜尖峰（${T[iNight]}，負載 ${n(load[iNight])} 萬瓩）時出力 `+
+     `<b>${n(arr[iNight])} 萬瓩</b>，貢獻率 <b>${n(share(iNight),1)}%</b>。`;
+  if(iLow!=null) h+=`全日備轉最低的 ${T[iLow]}（${m.min_reserve.rate}%）時，出力為 `+
+     `<b>${n(arr[iLow])} 萬瓩</b>（${n(share(iLow),1)}%）。`;
+
+  // 型態句：依能源特性補一句解讀
+  if(trait.kind==="intermittent"){
+    let last=-1; for(let i=iMax;i<N;i++){ if(arr[i]<=arr[iMax]*0.02){ last=i; break; } }
+    const span=(last>iMax)?(last-iMax)*10/60:null;
+    h+=`<br>從最高點到幾乎歸零，`+
+       (span?`歷時約 <b>${span.toFixed(1)} 小時</b>`:`當日未完全歸零`)+`。`;
+    if(iNight!=null&&iPeak!=null) h+=`日尖峰到夜尖峰之間，出力自 ${n(arr[iPeak])} 降至 `+
+       `${n(arr[iNight])} 萬瓩，<b>減少 ${n(arr[iPeak]-arr[iNight])} 萬瓩</b>，`+
+       `這個缺口必須由其他機組補上。`;
+  } else if(trait.kind==="storage"){
+    // 抽水與放水通常各有數個不連續區塊（凌晨離峰、中午光電充沛時各抽一次），
+    // 只報頭尾會把兩段誤寫成一段，因此逐段列出。
+    const blocks=sign=>{ const out=[]; let s=null;
+      for(let i=0;i<N;i++){ const on=sign>0?arr[i]>0.5:arr[i]<-0.5;
+        if(on&&s===null) s=i;
+        else if(!on&&s!==null){ if(i-s>=2) out.push([s,i-1]); s=null; } }
+      if(s!==null&&N-s>=2) out.push([s,N-1]);
+      return out; };
+    const fmt=b=>b.map(([a,z])=>`${T[a]}–${T[z]}`).join("、");
+    const hrs=b=>b.reduce((s,[a,z])=>s+(z-a+1),0)*10/60;
+    const P2=blocks(-1), G=blocks(1);
+    if(P2.length) h+=`<br>抽水／充電共 <b>${P2.length}</b> 段：<b>${fmt(P2)}</b>`+
+      `（合計 ${hrs(P2).toFixed(1)} 小時）。`;
+    if(G.length) h+=`放水／放電共 <b>${G.length}</b> 段：<b>${fmt(G)}</b>`+
+      `（合計 ${hrs(G).toFixed(1)} 小時）。`;
+  } else {
+    const on=arr.filter(v=>v!=null);
+    const avg=on.reduce((s,v)=>s+v,0)/on.length;
+    const swing=arr[iMax]-arr[iMin];
+    h+=`<br>全日平均出力 <b>${n(avg)} 萬瓩</b>，最高與最低相差 <b>${n(swing)} 萬瓩</b>`+
+       `（變動幅度 ${n(avg?swing/avg*100:0,0)}%）。`;
+  }
+  if(trait.tip) h+=`<br><span style="color:#546E7A">${trait.tip}</span>`;
+  box.innerHTML=h; box.style.display="";
+}
+
+function fuelSelect(){
+  const s=$("#fuel");
+  const opts=[`<option value="">（不選，看整體）</option>`];
+  (D.fuel_order||[]).forEach(f=>opts.push(`<option value="${f}">${f}</option>`));
+  s.innerHTML=opts.join("");
+  if(focusFuel&&!(D.fuel_order||[]).includes(focusFuel)) focusFuel="";
+  s.value=focusFuel;
+}
+
+function story(){
+  const m=D.marks, ml=LIGHT[m.min_reserve.light];
+  let h=`<h3>${D.date}　${D.label||""}</h3>${D.describe||""}`;
+  h+=`<table style="margin-top:6px">`;
+  const rows=[["日尖峰",m.day_peak,"load","萬瓩"],["夜尖峰",m.night_peak,"load","萬瓩"],
+              ["日間低谷",m.valley,"load","萬瓩"],["太陽光電最大",m.solar_max,"mw","萬瓩"]];
+  rows.forEach(([n,o,k,u])=>{ if(!o) return;
+    h+=`<tr><td>${n}</td><td>${o.t}</td><td>${Number(o[k]).toLocaleString()} ${u}`+
+       (o.share!=null?`（${o.share}%）`:"")+`</td></tr>`; });
+  h+=`<tr><td>最低備轉容量率</td><td>${m.min_reserve.t}</td><td>${m.min_reserve.rate}%（${ml.n}）</td></tr>`;
+  if(D.official_reserve_rate!=null){
+    const diff=D.official_reserve_rate-m.min_reserve.rate;
+    h+=`<tr><td>台電公布當日值</td><td>—</td><td>${D.official_reserve_rate.toFixed(2)}%`+
+       `（高出 ${diff.toFixed(2)} 個百分點）</td></tr>`; }
+  h+=`</table>`;
+  $("#story").innerHTML=h;
+
+  const u=$("#units");
+  if((D.offline&&D.offline.length)||(D.events&&D.events.length)){
+    let t=`<h3>當日供給側狀況</h3><table>`;
+    (D.events||[]).forEach(e=>{ t+=`<tr><td>${e.name}<small style="color:#90A4AE"> ${e.type}</small></td>`+
+      `<td>${e.from}–${e.to}</td><td>${e.note}　${e.cap.toLocaleString()} 萬瓩</td></tr>`; });
+    (D.offline||[]).forEach(o=>{ if((D.events||[]).some(e=>e.name===o.name)) return;
+      t+=`<tr><td>${o.name}<small style="color:#90A4AE"> ${o.type}</small></td>`+
+         `<td>全日</td><td>${o.note||"無出力"}　${o.cap.toLocaleString()} 萬瓩</td></tr>`; });
+    u.innerHTML=t+`</table>`; u.style.display="";
+  } else u.style.display="none";
+}
+
+/* ── 互動 ───────────────────────────────────────────── */
+function setCur(i){ cur=Math.max(0,Math.min(D.times.length-1,i|0)); draw(); readout(); }
+function fromX(clientX){
+  const cv=$("#cv"), r=cv.getBoundingClientRect();
+  const P={l:46,r:44}, w=r.width-P.l-P.r;
+  return Math.round((clientX-r.left-P.l)/w*(D.times.length-1));
+}
+function bind(){
+  const cv=$("#cv"); let down=false;
+  const mv=e=>{ if(!down&&e.type!=="pointerdown") return;
+    const x=e.clientX!=null?e.clientX:(e.touches&&e.touches[0].clientX);
+    if(x!=null) setCur(fromX(x)); };
+  cv.addEventListener("pointerdown",e=>{down=true;cv.setPointerCapture(e.pointerId);mv(e);});
+  cv.addEventListener("pointermove",mv);
+  cv.addEventListener("pointerup",()=>down=false);
+  cv.addEventListener("pointercancel",()=>down=false);
+  $("#slider").addEventListener("input",e=>setCur(+e.target.value));
+  addEventListener("resize",()=>{draw();});
+  document.addEventListener("keydown",e=>{
+    if(e.key==="ArrowLeft"){setCur(cur-1);e.preventDefault();}
+    if(e.key==="ArrowRight"){setCur(cur+1);e.preventDefault();}});
+  $("#play").onclick=()=>{
+    if(timer){clearInterval(timer);timer=null;$("#play").textContent="▶ 播放";return;}
+    $("#play").textContent="⏸ 暫停";
+    timer=setInterval(()=>setCur(cur>=D.times.length-1?0:cur+1),70);
+  };
+  $("#prev").onclick=()=>hop(-1);
+  $("#next").onclick=()=>hop(1);
+  $("#day").onchange=e=>load(e.target.value);
+  $("#fuel").onchange=e=>{focusFuel=e.target.value; draw(); analysis();};
+  $("#fuelmode").onclick=()=>{
+    focusBar=!focusBar;
+    $("#fuelmode").textContent=focusBar?"切換為區塊圖":"切換為長條圖";
+    draw();
+  };
+}
+function hop(d){
+  const i=idx.findIndex(x=>x.date===D.date);
+  const j=i+d; if(j<0||j>=idx.length) return;
+  $("#day").value=idx[j].date; load(idx[j].date);
+}
+
+/* ── 載入 ───────────────────────────────────────────── */
+async function load(date){
+  try{
+    const r=await fetch(`${DATA_DIR}/${date}.json`,{cache:"no-cache"});
+    if(!r.ok) throw new Error(`讀取 ${date} 失敗（HTTP ${r.status}）`);
+    D=await r.json();
+    cur=Math.min(cur,D.times.length-1);
+    $("#slider").max=D.times.length-1;
+    fuelSelect();
+    draw(); readout(); story(); analysis();
+  }catch(e){ $("#app").insertAdjacentHTML("beforeend",
+    `<div class="err">${e.message}</div>`); }
+}
+async function boot(){
+  chips(); bind();
+  try{
+    const r=await fetch(`${DATA_DIR}/index.json`,{cache:"no-cache"});
+    if(!r.ok) throw new Error(`找不到 ${DATA_DIR}/index.json（HTTP ${r.status}）`);
+    idx=await r.json();
+    if(!idx.length) throw new Error("index.json 是空的，還沒有匯出任何日期");
+    $("#day").innerHTML=idx.map(d=>{
+      const L=LIGHT[d.light]||{n:""};
+      return `<option value="${d.date}">${d.date}　尖峰 ${Math.round(d.peak).toLocaleString()} 萬瓩　最低備轉 ${d.min_rate}%</option>`;
+    }).join("");
+    await load(idx[idx.length-1].date);
+    $("#day").value=D.date;
+  }catch(e){
+    $("#app").insertAdjacentHTML("beforeend",
+      `<div class="err">${e.message}<br><br>請先用 <code>export_web.py</code> 匯出資料到 <code>${DATA_DIR}/</code>。</div>`);
+  }
+}
+boot();
+</script>
+</body>
+</html>
