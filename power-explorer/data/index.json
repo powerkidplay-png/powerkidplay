@@ -1,0 +1,26 @@
+[
+ {
+  "date": "2024-06-22",
+  "label": "示範",
+  "peak": 3649.9,
+  "min_rate": 16.23,
+  "light": "green",
+  "size_kb": 17.4
+ },
+ {
+  "date": "2024-06-29",
+  "label": "示範",
+  "peak": 3662.3,
+  "min_rate": 13.75,
+  "light": "green",
+  "size_kb": 17.2
+ },
+ {
+  "date": "2024-07-05",
+  "label": "示範",
+  "peak": 4073.4,
+  "min_rate": 17.88,
+  "light": "green",
+  "size_kb": 17.4
+ }
+]
