@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>複循環組裝廠</title>
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：複循環組裝廠
+  開發日期：2026-08-04
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，請先來信告知：
+  powerkidplay@gmail.com
+-->
+<style>
+  :root{
+    --main:#1565C0; --grad:linear-gradient(135deg,#1565C0,#1976D2);
+    --power:#FFB300; --steam:#43A047; --waste:#EF9A9A;
+    --ink:#12304C; --soft:#4A6B8A; --line:#CFE0EE; --paper:#F5FAFF;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:0;background:transparent;
+    font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+    color:var(--ink);font-size:16px;line-height:1.6;
+  }
+  .app{max-width:450px;margin:0 auto;background:#fff;border-radius:14px;padding:16px;
+       box-shadow:0 2px 10px rgba(21,101,192,.14)}
+  .hd{background:var(--grad);color:#fff;border-radius:10px;padding:12px 14px;margin-bottom:14px}
+  .hd h1{font-size:1.15em;margin:0 0 2px;font-weight:800}
+  .hd p{margin:0;font-size:.8em;opacity:.94}
+
+  .eff{text-align:center;margin-bottom:12px}
+  .eff .lbl{font-size:.8em;color:var(--soft);font-weight:700}
+  .eff .num{font-size:2.7em;font-weight:800;line-height:1.05;color:var(--main);
+            font-variant-numeric:tabular-nums;transition:color .4s}
+  .eff .num small{font-size:.34em;margin-left:2px}
+  .eff .sub{font-size:.82em;color:var(--soft)}
+
+  .bars{margin:10px 0 4px}
+  .bars .top{display:flex;justify-content:space-between;font-size:.74em;color:var(--soft);
+             font-weight:700;margin-bottom:5px}
+  .cells{display:grid;grid-template-columns:repeat(10,1fr);gap:2px}
+  .cell{aspect-ratio:1;border-radius:2px;background:#DCE9F3;transition:background .3s}
+  .cell.gt{background:var(--power)}
+  .cell.st{background:var(--steam)}
+  .cell.ws{background:var(--waste)}
+  .lg{display:flex;gap:10px;flex-wrap:wrap;font-size:.72em;margin-top:8px;color:var(--soft)}
+  .lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+
+  .plant{display:flex;align-items:stretch;gap:4px;margin:14px 0 10px}
+  .u{flex:1;border:2px dashed var(--line);border-radius:10px;padding:8px 3px;text-align:center;
+     background:var(--paper);transition:.3s;min-width:0}
+  .u.on{border-style:solid;border-color:var(--main);background:#fff}
+  .u .i{font-size:1.35em;line-height:1.2;filter:grayscale(1);opacity:.4;transition:.3s}
+  .u.on .i{filter:none;opacity:1}
+  .u .n{font-weight:800;font-size:.68em;margin-top:1px;line-height:1.25}
+  .u .s{font-size:.6em;color:var(--soft);margin-top:1px;line-height:1.25}
+  .ar{display:flex;align-items:center;font-size:.95em;color:var(--line);flex-shrink:0}
+  .ar.hot{color:var(--waste)}
+  .ar.on{color:var(--main)}
+
+  button{
+    font-family:inherit;font-size:.95em;font-weight:800;border:none;border-radius:10px;
+    padding:12px 14px;cursor:pointer;background:var(--main);color:#fff;width:100%;
+    box-shadow:0 3px 0 #0D4C92;
+  }
+  button:active{transform:translateY(2px);box-shadow:0 1px 0 #0D4C92}
+  button.gh{background:#fff;color:var(--main);border:2px solid var(--main);box-shadow:none;margin-top:8px}
+  button:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
+  button:focus-visible{outline:3px solid #0D3B66;outline-offset:2px}
+
+  .talk{display:flex;gap:8px;align-items:flex-start;border-radius:10px;padding:10px 12px;margin-top:12px;
+        background:#E3F2FD;border:1.5px solid #1976D2}
+  .talk.crab{background:#E3F2FD;border-color:#1976D2}
+  .talk .w{font-size:1.4em;line-height:1.2}
+  .talk p{margin:0;font-size:.86em}
+  .talk b{color:var(--main)}
+
+  .race{margin-top:6px}
+  .rr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .rn{width:4.4em;font-weight:800;font-size:.82em;flex-shrink:0}
+  .rb{flex:1;height:18px;background:#DCE9F3;border-radius:9px;overflow:hidden}
+  .rf{height:100%;border-radius:9px;width:0;transition:width 1.1s linear}
+  .rt{width:3.8em;text-align:right;font-weight:800;font-size:.8em;font-variant-numeric:tabular-nums}
+
+  .sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .sec h2{font-size:.9em;margin:0 0 8px;font-weight:800}
+  .note{font-size:.74em;color:var(--soft);line-height:1.7}
+  .note b{color:var(--ink)}
+  .cr{text-align:center;font-size:.68em;color:var(--soft);margin:12px 0 0}
+  .cr a{color:var(--main);text-decoration:none}
+</style>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js',new Date());
+  gtag('config','G-FCBM83421N');
+</script>
+</head>
+<body>
+<div class="app">
+
+  <div class="hd">
+    <h1>🔧 複循環組裝廠</h1>
+    <p>同樣一份天然氣，怎麼發兩次電？親手裝給你看</p>
+  </div>
+
+  <div class="eff">
+    <div class="lbl">這座電廠的發電效率</div>
+    <div class="num" id="eff">36<small>%</small></div>
+    <div class="sub" id="effSub">100 份燃料，只有 36 份變成電</div>
+  </div>
+
+  <div class="bars">
+    <div class="top">
+      <span>100 份天然氣的去向</span>
+      <span id="wasteTxt">64 份廢熱排掉</span>
+    </div>
+    <div class="cells" id="cells"></div>
+    <div class="lg">
+      <span><i style="background:#FFB300"></i>氣渦輪發的電</span>
+      <span><i style="background:#43A047"></i>蒸汽渦輪發的電</span>
+      <span><i style="background:#EF9A9A"></i>排掉的廢熱</span>
+    </div>
+  </div>
+
+  <div class="plant">
+    <div class="u on"><div class="i">🔥</div><div class="n">天然氣</div><div class="s">燃料</div></div>
+    <div class="ar on">▸</div>
+    <div class="u on"><div class="i">💨</div><div class="n">氣渦輪</div><div class="s">發電①</div></div>
+    <div class="ar hot" id="a2">▸</div>
+    <div class="u" id="u2"><div class="i">♨️</div><div class="n">熱回收<br>鍋爐</div><div class="s" id="u2s">未裝</div></div>
+    <div class="ar" id="a3">▸</div>
+    <div class="u" id="u3"><div class="i">⚙️</div><div class="n">蒸汽<br>渦輪</div><div class="s" id="u3s">未裝</div></div>
+  </div>
+
+  <button id="build">① 安裝熱回收鍋爐</button>
+  <button id="reset" class="gh">重新開始</button>
+
+  <div class="talk crab" id="talk">
+    <span class="w">🦐</span>
+    <p><b>蝦蛄：</b>我的拳頭噴出藍色火焰推動氣渦輪發電——可是排出去那股氣還燙得不得了，就這樣放掉了。</p>
+  </div>
+
+  <div class="sec" id="raceSec" style="display:none">
+    <h2>那單循環就沒用了嗎？比比啟動速度</h2>
+    <div class="race">
+      <div class="rr">
+        <span class="rn">單循環</span>
+        <div class="rb"><div class="rf" id="f1" style="background:#FFB300"></div></div>
+        <span class="rt" id="t1">0 分</span>
+      </div>
+      <div class="rr">
+        <span class="rn">複循環</span>
+        <div class="rb"><div class="rf" id="f2" style="background:#43A047"></div></div>
+        <span class="rt" id="t2">0 分</span>
+      </div>
+    </div>
+    <button id="race">▶ 開始競速</button>
+    <div class="talk" id="raceTalk" style="display:none">
+      <span class="w">⚡</span>
+      <p><b>電鱝老師：</b>複循環比較省燃料，但多了一整套蒸汽系統要暖機，開起來比較久。<b>緊急缺電時先派啟動最快的單循環頂上，平常穩定發電就交給省燃料的複循環。</b>各有各的任務。</p>
+    </div>
+  </div>
+
+  <div class="sec note">
+    <p style="margin:0"><b>數字說明：</b>單循環效率約三成多。複循環這裡用 64%，是台電各新建計畫公布的<b>設計效率上限</b>（臺中新增與興達新為 64.1%）。實際上各廠不一樣：通霄二期 61.51% 以上、大林新增 61.03%、已商轉的大潭 7～9 號機 60.7% 以上——<b>大致落在六成到六成四之間</b>。啟動時間為概念性示意，真實機組會因機型與是否熱機而異。</p>
+    <p class="cr">© <span id="yr"></span> <a href="https://powerkidplay.blogspot.com/" target="_blank" rel="noopener">電力爸爸的生活筆記</a></p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var GT=36, ST=28, stage=0, cells=[];
+  function $(i){return document.getElementById(i);}
+
+  var box=$('cells');
+  for(var i=0;i<100;i++){var d=document.createElement('div');d.className='cell';box.appendChild(d);cells.push(d);}
+
+  function paint(){
+    var st = stage===2 ? ST : 0;
+    for(var i=0;i<100;i++){
+      cells[i].className='cell'+(i<GT?' gt':i<GT+st?' st':' ws');
+    }
+    var e=GT+st;
+    $('eff').innerHTML=e+'<small>%</small>';
+    $('eff').style.color = stage===2 ? '#43A047' : '#1565C0';
+    $('wasteTxt').textContent=(100-e)+' 份廢熱排掉';
+    $('effSub').textContent = stage===2
+      ? '同一份燃料發兩次電，'+e+' 份變成電'
+      : '100 份燃料，只有 '+e+' 份變成電';
+  }
+
+  function say(em,who,tx){
+    $('talk').innerHTML='<span class="w">'+em+'</span><p><b>'+who+'：</b>'+tx+'</p>';
+  }
+
+  function render(){
+    paint();
+    var b=$('build');
+    if(stage===0){ b.textContent='① 安裝熱回收鍋爐'; b.disabled=false; }
+    else if(stage===1){
+      b.textContent='② 安裝蒸汽渦輪'; b.disabled=false;
+      $('u2').classList.add('on'); $('u2s').textContent='燒蒸汽';
+      $('a2').classList.remove('hot'); $('a2').classList.add('on');
+    } else {
+      b.textContent='✓ 複循環完成'; b.disabled=true;
+      $('u3').classList.add('on'); $('u3s').textContent='發電②';
+      $('a3').classList.add('on');
+      $('raceSec').style.display='';
+    }
+  }
+
+  $('build').addEventListener('click',function(){
+    if(stage===0){ stage=1; say('♨️','熱回收鍋爐','裝好了！我把排出來的滾燙廢氣接住，拿去把水燒成蒸氣——可是蒸氣還沒有地方可以去。'); }
+    else if(stage===1){ stage=2; say('🦐','蝦蛄','蒸汽渦輪轉起來了！原來剛剛排掉的那些，還能再發一次電——一份燃料，發兩次電！'); }
+    render();
+  });
+
+  $('reset').addEventListener('click',function(){
+    stage=0;
+    $('u2').classList.remove('on'); $('u3').classList.remove('on');
+    $('u2s').textContent='未裝'; $('u3s').textContent='未裝';
+    $('a2').classList.add('hot'); $('a2').classList.remove('on'); $('a3').classList.remove('on');
+    $('raceSec').style.display='none'; $('raceTalk').style.display='none';
+    $('f1').style.width='0'; $('f2').style.width='0';
+    $('t1').textContent='0 分'; $('t2').textContent='0 分'; $('race').disabled=false;
+    say('🦐','蝦蛄','我的拳頭噴出藍色火焰推動氣渦輪發電——可是排出去那股氣還燙得不得了，就這樣放掉了。');
+    render();
+  });
+
+  $('race').addEventListener('click',function(){
+    this.disabled=true;
+    var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var A=12,B=55,dur=reduce?0:1100;
+    setTimeout(function(){ $('f1').style.width='22%'; $('f2').style.width='100%'; },20);
+    var t0=Date.now();
+    var tm=setInterval(function(){
+      var p=dur===0?1:Math.min(1,(Date.now()-t0)/dur);
+      $('t1').textContent=Math.round(A*Math.min(1,p/0.22))+' 分';
+      $('t2').textContent=Math.round(B*p)+' 分';
+      if(p>=1){ clearInterval(tm); $('t1').textContent=A+' 分'; $('t2').textContent=B+' 分'; $('raceTalk').style.display=''; }
+    },40);
+  });
+
+  render();
+
+  var y=new Date().getFullYear();
+  $('yr').textContent = y>2026 ? '2026–'+y : '2026';
+})();
+</script>
+</body>
+</html>
