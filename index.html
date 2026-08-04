@@ -113,10 +113,17 @@
   var IGNORE = ["assets", ".github", "images", "img"];
 
   // 分類設定（顏色 + emoji）
+  // ⚠️ 這裡是《內容地圖》七大系列，顏色與 topics.js 的 SERIES 一致。
+  //    2026-08-05 修：本頁原本還停在舊的七大主題（供電基礎／太陽能…），
+  //    但所有 game.json 早在 T-02 就改成系列了，導致每張卡都掉進「其他」。
   var CAT = {
-    "供電基礎":{c:"#1565C0",e:"⚡"}, "太陽能":{c:"#F9A825",e:"☀️"},
-    "風力":{c:"#26A69A",e:"🌬️"}, "儲能與調度":{c:"#43A047",e:"🔋"},
-    "尖峰離峰":{c:"#5E35B1",e:"📊"}, "核能與基載":{c:"#00838F",e:"🪸"},
+    "一・電力基礎課":{c:"#3a6fc4",e:"📘"},
+    "二・供需平衡觀測站":{c:"#0e7c86",e:"⚖️"},
+    "三・能源圖鑑":{c:"#7a52cc",e:"🔋"},
+    "四・機組小教室":{c:"#5a5ad1",e:"⚙️"},
+    "五・電網探險隊":{c:"#4d7fd0",e:"🗼"},
+    "六・生活數據觀察家":{c:"#d97b2f",e:"📊"},
+    "七・節能與用電安全":{c:"#e0653a",e:"💡"},
     "其他":{c:"#78909C",e:"🌊"}
   };
   var CAT_ORDER = Object.keys(CAT);
@@ -188,6 +195,11 @@
     var thumb=g.thumb ? '<img src="'+esc(g.thumb)+'" alt="'+esc(g.name)+'">' : '<span class="ph">'+cf.e+'</span>';
     var art=g.articleTitle ? '<div class="cart"><i>📄</i>'+esc(g.articleTitle)+'</div>' : '';
     var tag=g.gameType ? '<span class="ctag" style="background:'+cf.c+'1a;color:'+cf.c+'">'+esc(g.gameType)+'</span>' : '';
+    // 成人向資料工具（如單日探索器）加註記，避免家長以為是給孩子玩的小遊戲
+    if(g.audience && g.audience!=="親子"){
+      tag+='<span class="ctag" style="background:#37474F1a;color:#37474F;border:1px solid #CFD8DC">'
+         + esc(g.audience)+'</span>';
+    }
     var artBtn=g.articleUrl ? '<a class="btn art" href="'+esc(g.articleUrl)+'" target="_blank" rel="noopener">📖 看文章</a>' : '';
     return '<div class="card"><div class="thumb" style="background:'+thumbBg+'">'+thumb+'</div>'
       + '<div class="cbody"><div class="cname">'+esc(g.name||g._folder)+'</div>'+art+tag
