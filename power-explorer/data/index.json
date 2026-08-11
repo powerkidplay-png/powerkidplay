@@ -1,26 +1,34 @@
 [
  {
   "date": "2024-06-22",
-  "label": "示範",
-  "peak": 3649.9,
-  "min_rate": 16.23,
-  "light": "green",
-  "size_kb": 17.4
+  "label": "週末的白天與傍晚",
+  "peak": 3637.6,
+  "min_rate": 6.39,
+  "light": "yellow",
+  "size_kb": 28.5
  },
  {
   "date": "2024-06-29",
-  "label": "示範",
-  "peak": 3662.3,
-  "min_rate": 13.75,
+  "label": "尖峰過後才公布實際備轉",
+  "peak": 3503.5,
+  "min_rate": 18.96,
   "light": "green",
-  "size_kb": 17.2
+  "size_kb": 28.9
  },
  {
   "date": "2024-07-05",
-  "label": "示範",
-  "peak": 4073.4,
-  "min_rate": 17.88,
-  "light": "green",
-  "size_kb": 17.4
+  "label": "盛夏的一天",
+  "peak": 4096.1,
+  "min_rate": 7.47,
+  "light": "yellow",
+  "size_kb": 27.0
+ },
+ {
+  "date": "2026-05-28",
+  "label": "今年用電最高的一天",
+  "peak": 4121.9,
+  "min_rate": 5.26,
+  "light": "orange",
+  "size_kb": 27.7
  }
 ]
