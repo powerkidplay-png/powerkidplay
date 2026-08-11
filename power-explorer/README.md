@@ -76,7 +76,22 @@ python -m http.server 8899
 `body` 是透明的，可以直接 iframe 進 Blogger：
 
 ```html
-<iframe src="https://powerkidplay-png.github.io/powerkidplay/power-explorer/" width="100%" height="1150" style="border:0" loading="lazy"></iframe>
+<iframe src="https://powerkidplay-png.github.io/powerkidplay/power-explorer/?date=2026-05-28"
+        width="100%" height="1150" style="border:0" loading="lazy"></iframe>
 ```
 
-也可以只帶一天：之後若要支援 `?date=2024-06-22`，在 `boot()` 讀 `location.search` 即可。
+### `?date=` 參數
+
+指定開哪一天，讓 iframe 釘住文章對應的日子。
+
+| 情況 | 行為 |
+|:---|:---|
+| `?date=2026-05-28` | 開那天 |
+| 沒帶參數 | 開清單最後一天（`index.json` 依日期排序，最後＝最新） |
+| 帶了沒收錄的日期 | 退回最後一天，並在頁面上方提示目前收錄哪幾天 |
+
+**沒帶參數時的預設會隨著新增日期而變**，所以文章裡的 iframe 一律明寫 `?date=`，
+不要靠預設。
+
+⚠️ 這個值來自網址，顯示時一律走 `textContent`，不可以塞進 `innerHTML`
+（否則 `?date=<img onerror=…>` 會被執行）。

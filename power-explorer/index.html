@@ -466,11 +466,22 @@ async function boot(){
       const L=LIGHT[d.light]||{n:""};
       return `<option value="${d.date}">${d.date}　尖峰 ${Math.round(d.peak).toLocaleString()} 萬瓩　最低備轉 ${d.min_rate}%</option>`;
     }).join("");
-    await load(idx[idx.length-1].date);
+    // ?date=YYYY-MM-DD 可以指定開哪一天（文章 iframe 用這個釘住對應的日子）。
+    // 沒給、或給了清單裡沒有的日期，就退回最後一天（index.json 依日期排序，最後＝最新）。
+    const want=new URLSearchParams(location.search).get("date");
+    const hit=want && idx.some(d=>d.date===want) ? want : idx[idx.length-1].date;
+    await load(hit);
     $("#day").value=D.date;
+    if(want && want!==hit){
+      // want 來自網址，一律用 textContent 塞，不要碰 innerHTML（否則 ?date=<img onerror> 會被執行）
+      const w=document.createElement("div");
+      w.className="err";
+      w.textContent=`沒有「${want}」的資料，已改開 ${hit}。目前收錄：${idx.map(d=>d.date).join("、")}`;
+      $("#app").prepend(w);
+    }
   }catch(e){
     $("#app").insertAdjacentHTML("beforeend",
-      `<div class="err">${e.message}<br><br>請先用 <code>export_web.py</code> 匯出資料到 <code>${DATA_DIR}/</code>。</div>`);
+      `<div class="err">${e.message}<br><br>資料要用總部倉庫的 <code>rebuild_explorer.py</code> 產生。</div>`);
   }
 }
 boot();
