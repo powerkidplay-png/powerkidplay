@@ -1,0 +1,35 @@
+name: 通知官網重建
+# 規劃書 §8-5、拍板 #5：遊戲一 push，官網立刻重建 → 新遊戲即時出現。
+# 沒有這個的話，要等 powerdad-site 的每日排程（臺北 05:00）才會同步。
+#
+# 前置（可選）：本 repo Settings → Secrets and variables → Actions → 新增 DEPLOY_HOOK
+#               值來自 Cloudflare Pages 專案 → Settings → Builds & deployments → Deploy hooks
+#               （與 powerdad-site 用同一個 Hook URL）
+#
+# ⚠️ 沒設 DEPLOY_HOOK 時，本 job 會「略過」而不是失敗。
+#    這是 public repo，每次 push 都亮一個紅叉不好看，而且 Deploy Hook 本來就是可選步驟。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 檢查有沒有設定 DEPLOY_HOOK
+        id: check
+        env:
+          DEPLOY_HOOK: ${{ secrets.DEPLOY_HOOK }}
+        run: |
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "has_hook=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::沒有設定 DEPLOY_HOOK，略過通知。官網仍會由每日排程同步。"
+          else
+            echo "has_hook=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 呼叫 Cloudflare Deploy Hook
+        if: steps.check.outputs.has_hook == 'true'
+        env:
+          DEPLOY_HOOK: ${{ secrets.DEPLOY_HOOK }}
+        run: curl -sf -X POST "$DEPLOY_HOOK"
