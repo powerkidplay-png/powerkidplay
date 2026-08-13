@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：讀懂台電機組表
+  開發日期：2026-08-12
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記。保留所有權利。
+  ❌ 禁止複製程式碼至其他網站
+  ✅ 允許透過本站連結分享
+  授權洽詢：powerkidplay@gmail.com
+-->
+<title>讀懂台電機組表</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff; font-size: 19px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 4px; }
+  .slider-row { margin-bottom: 16px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 2px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800; padding: 3px 13px;
+    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+  }
+  .val-a { background: #1565C0; }
+  .val-b { background: #18A99C; }
+  .val-c { background: #EF6C00; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input.tealThumb::-webkit-slider-thumb { background: #18A99C; }
+  input.tealThumb::-moz-range-thumb { background: #18A99C; }
+  input.orangeThumb::-webkit-slider-thumb { background: #EF6C00; }
+  input.orangeThumb::-moz-range-thumb { background: #EF6C00; }
+
+  .result-area {
+    margin: 4px 18px 16px;
+    background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
+    border-radius: 14px; padding: 15px 14px; text-align: center;
+  }
+  .result-label { font-size: 14px; color: #555; margin-bottom: 2px; }
+  .result-number { font-size: 19px; font-weight: 700; color: #1565C0; }
+  .big {
+    font-size: 42px; font-weight: 900; color: #0D47A1;
+    line-height: 1.05; display: inline-block; min-width: 60px;
+  }
+  .formula {
+    margin-top: 10px; font-size: 14px; color: #00695C;
+    background: #ffffff; border-radius: 10px; padding: 8px 6px;
+    font-weight: 700; border: 1px dashed #80CBC4;
+  }
+  .stage { padding: 0 18px 4px; }
+  .note { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
+  .note b { color: #00897B; font-size: 15px; }
+  .btn {
+    display: block; width: 100%; padding: 12px; margin-bottom: 9px;
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    border: 2px solid #BBDEFB; border-radius: 12px;
+    background: #F5FAFF; color: #0D47A1; cursor: pointer;
+    text-align: left; transition: all .15s ease;
+  }
+  .btn:hover { border-color: #1976D2; background: #E3F2FD; }
+  .btn.ok { border-color: #43A047; background: #E8F5E9; color: #1B5E20; }
+  .btn.no { border-color: #E53935; background: #FFEBEE; color: #B71C1C; }
+  .btn:disabled { cursor: default; opacity: .85; }
+  .dialogue {
+    margin: 12px 18px 0; padding: 11px 14px;
+    border-radius: 12px; font-size: 14px; line-height: 1.6; font-weight: 500;
+  }
+  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
+  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 15px 12px 17px; }
+  .unit-tbl {
+    width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px;
+  }
+  .unit-tbl th, .unit-tbl td {
+    border: 1px solid #CFD8DC; padding: 7px 6px; text-align: center;
+  }
+  .unit-tbl th { background: #ECEFF1; font-weight: 700; color: #37474F; }
+  .unit-tbl td { font-weight: 700; color: #0D47A1; }
+  .tag {
+    display: inline-block; background: #FFF3E0; border: 2px solid #FFB74D;
+    color: #E65100; font-weight: 800; font-size: 15px;
+    padding: 6px 14px; border-radius: 10px; margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">📊 讀懂台電機組表</div>
+
+  <div class="stage">
+    <div class="note">這一列的「備註」寫著這些字，是什麼意思？<b id="sc">0</b> / 6</div>
+    <table class="unit-tbl">
+      <tr><th>機組</th><th>裝置容量</th><th>淨發電量</th></tr>
+      <tr><td id="uName">台中#5</td><td id="uCap">550</td><td id="uGen">0</td></tr>
+    </table>
+    <div class="tag" id="tag">歲修</div>
+    <div id="opts"></div>
+  </div>
+  <div class="result-area">
+    <div class="result-label" id="fbLbl">選一個看看</div>
+    <div class="formula" id="fb">備註欄不是只有「歲修」和「故障」兩種</div>
+  </div>
+  <div class="stage"><button class="btn" id="next" style="display:none">➡️ 下一題</button></div>
+  <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：看看那一列的數字，再看備註寫什麼。</div>
+  <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：看得懂備註欄，那張表才真的有用。</div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+<script>
+var turtleBox = document.getElementById('turtleBox');
+var rayBox    = document.getElementById('rayBox');
+function say(who, txt) {
+  if (who === 't') turtleBox.textContent = '🐢 海龜助教：' + txt;
+  else rayBox.textContent = '⚡ 電鱝老師：' + txt;
+}
+
+// ⚠️ 備註欄的用語全部取自台電「各機組發電量」頁面的官方說明
+var Q = [
+ {u:'台中#5', c:'550', g:'0',   t:'歲修',
+  o:['計畫中的定期保養，停下來檢修', '臨時壞掉了', '燃料不夠用'], a:0,
+  w:'歲修是排定好的例行保養。看到 0 不要嚇到——那是計畫中的休假，不是出事。'},
+ {u:'興達#1', c:'500', g:'0',   t:'部分故障',
+  o:['整部機組報廢', '有設備故障，出力受到限制', '正在測試'], a:1,
+  w:'「部分」是關鍵字。不是整部壞掉，是某些設備有問題所以發不滿。'},
+ {u:'大潭#7', c:'600', g:'420', t:'運轉限制',
+  o:['被限制不能發電', '因為某些原因不能發到滿載', '正在歲修'], a:1,
+  w:'常見原因像輔機設備故障。你看牠還是有在發，只是發不到裝置容量。'},
+ {u:'林口#2', c:'800', g:'96',  t:'測試運轉',
+  o:['正在做測試，出力還不穩定', '已經除役了', '故障搶修中'], a:0,
+  w:'新機組或大修完的機組要先測試。這時候的數字不代表牠平常的表現。'},
+ {u:'協和#4', c:'500', g:'0',   t:'環保停機',
+  o:['被環保團體抗議', '依環保規定或空品因素停機', '燃料用完了'], a:1,
+  w:'空品不好的時候會有相關的調度安排。這也是備註欄會出現的狀態之一。'},
+ {u:'民營電廠-燃煤', c:'—', g:'1,180', t:'（沒有備註）',
+  o:['這一列是台電自己的機組', '這一列是向民營電廠購的電', '這是預估值'], a:1,
+  w:'這一頁包含民營電廠，分類會寫「民營電廠-燃氣」「民營電廠-燃煤」。'}
+];
+var i = 0, sc = 0, done = false;
+var el = {u:'uName', c:'uCap', g:'uGen', t:'tag'};
+var opts = document.getElementById('opts'), fb = document.getElementById('fb');
+var fbLbl = document.getElementById('fbLbl'), nx = document.getElementById('next');
+var scEl = document.getElementById('sc');
+function load() {
+  done = false;
+  var q = Q[i];
+  document.getElementById('uName').textContent = q.u;
+  document.getElementById('uCap').textContent = q.c;
+  document.getElementById('uGen').textContent = q.g;
+  document.getElementById('tag').textContent = q.t;
+  scEl.textContent = sc;
+  nx.style.display = 'none';
+  fbLbl.textContent = '選一個看看';
+  fb.textContent = '備註欄不是只有「歲修」和「故障」兩種';
+  opts.innerHTML = '';
+  for (var k = 0; k < q.o.length; k++) {
+    (function (k) {
+      var b = document.createElement('button');
+      b.className = 'btn'; b.textContent = q.o[k];
+      b.addEventListener('click', function () { pick(k, b); });
+      opts.appendChild(b);
+    })(k);
+  }
+  say('t', '看看那一列的數字，再看備註寫什麼。');
+}
+function pick(k, b) {
+  if (done) return;
+  done = true;
+  var q = Q[i], bs = opts.querySelectorAll('.btn');
+  for (var j = 0; j < bs.length; j++) bs[j].disabled = true;
+  if (k === q.a) { sc++; b.classList.add('ok'); fbLbl.textContent = '✅ 答對了'; }
+  else { b.classList.add('no'); bs[q.a].classList.add('ok'); fbLbl.textContent = '❌ 是另一個'; }
+  scEl.textContent = sc;
+  fb.textContent = q.t;
+  say('r', q.w);
+  nx.style.display = 'block';
+  nx.textContent = (i < Q.length - 1) ? '➡️ 下一題' : '🔄 再玩一次';
+  if (i === Q.length - 1) say('t', '六題結束，答對 ' + sc + ' 題。以後看那張表就有底了。');
+}
+nx.addEventListener('click', function () {
+  if (i < Q.length - 1) i++; else { i = 0; sc = 0; }
+  load();
+});
+load();
+
+var y = new Date().getFullYear();
+document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+</script>
+</body>
+</html>

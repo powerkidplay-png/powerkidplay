@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：電線的垂度實驗室
+  開發日期：2026-08-12
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記。保留所有權利。
+  ❌ 禁止複製程式碼至其他網站
+  ✅ 允許透過本站連結分享
+  授權洽詢：powerkidplay@gmail.com
+-->
+<title>電線的垂度實驗室</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff; font-size: 19px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 4px; }
+  .slider-row { margin-bottom: 16px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 2px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800; padding: 3px 13px;
+    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+  }
+  .val-a { background: #1565C0; }
+  .val-b { background: #18A99C; }
+  .val-c { background: #EF6C00; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input.tealThumb::-webkit-slider-thumb { background: #18A99C; }
+  input.tealThumb::-moz-range-thumb { background: #18A99C; }
+  input.orangeThumb::-webkit-slider-thumb { background: #EF6C00; }
+  input.orangeThumb::-moz-range-thumb { background: #EF6C00; }
+
+  .result-area {
+    margin: 4px 18px 16px;
+    background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
+    border-radius: 14px; padding: 15px 14px; text-align: center;
+  }
+  .result-label { font-size: 14px; color: #555; margin-bottom: 2px; }
+  .result-number { font-size: 19px; font-weight: 700; color: #1565C0; }
+  .big {
+    font-size: 42px; font-weight: 900; color: #0D47A1;
+    line-height: 1.05; display: inline-block; min-width: 60px;
+  }
+  .formula {
+    margin-top: 10px; font-size: 14px; color: #00695C;
+    background: #ffffff; border-radius: 10px; padding: 8px 6px;
+    font-weight: 700; border: 1px dashed #80CBC4;
+  }
+  .stage { padding: 0 18px 4px; }
+  .note { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
+  .note b { color: #00897B; font-size: 15px; }
+  .btn {
+    display: block; width: 100%; padding: 12px; margin-bottom: 9px;
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    border: 2px solid #BBDEFB; border-radius: 12px;
+    background: #F5FAFF; color: #0D47A1; cursor: pointer;
+    text-align: left; transition: all .15s ease;
+  }
+  .btn:hover { border-color: #1976D2; background: #E3F2FD; }
+  .btn.ok { border-color: #43A047; background: #E8F5E9; color: #1B5E20; }
+  .btn.no { border-color: #E53935; background: #FFEBEE; color: #B71C1C; }
+  .btn:disabled { cursor: default; opacity: .85; }
+  .dialogue {
+    margin: 12px 18px 0; padding: 11px 14px;
+    border-radius: 12px; font-size: 14px; line-height: 1.6; font-weight: 500;
+  }
+  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
+  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 15px 12px 17px; }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">〰️ 電線的垂度實驗室</div>
+
+  <div class="control-area">
+    <div class="slider-row">
+      <div class="slider-head">
+        <span class="lbl">氣溫<small>冬天 ↔ 夏天</small></span>
+        <span class="val-badge val-c" id="tVal">25 °C</span>
+      </div>
+      <input type="range" id="tSlider" class="orangeThumb" min="5" max="40" step="1" value="25">
+    </div>
+    <div class="slider-row">
+      <div class="slider-head">
+        <span class="lbl">施工時拉多緊<small>調調看</small></span>
+        <span class="val-badge val-b" id="gVal">剛剛好</span>
+      </div>
+      <input type="range" id="gSlider" class="tealThumb" min="0" max="2" step="1" value="1">
+    </div>
+  </div>
+  <div class="stage">
+    <svg viewBox="0 0 300 130" id="svg" style="width:100%;max-width:320px;display:block;margin:0 auto">
+      <rect x="20" y="18" width="7" height="94" fill="#8D6E63"/>
+      <rect x="273" y="18" width="7" height="94" fill="#8D6E63"/>
+      <rect x="0" y="112" width="300" height="18" fill="#A5D6A7"/>
+      <path id="wire" fill="none" stroke="#37474F" stroke-width="3.5" stroke-linecap="round"/>
+      <text x="150" y="126" id="warn" text-anchor="middle" font-size="11" font-weight="700" fill="#B71C1C"></text>
+    </svg>
+  </div>
+  <div class="result-area">
+    <div class="result-label">這條線現在的狀況</div>
+    <div class="result-number"><span class="big" style="font-size:26px" id="state">正常</span></div>
+    <div class="formula" id="fm">工程上這個「垂下去的程度」叫弛度</div>
+  </div>
+  <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：把氣溫從冬天拉到夏天，看線的形狀怎麼變。</div>
+  <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：這個垂度是設計出來的，不是施工不小心。</div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+<script>
+var turtleBox = document.getElementById('turtleBox');
+var rayBox    = document.getElementById('rayBox');
+function say(who, txt) {
+  if (who === 't') turtleBox.textContent = '🐢 海龜助教：' + txt;
+  else rayBox.textContent = '⚡ 電鱝老師：' + txt;
+}
+
+var tS = document.getElementById('tSlider'), gS = document.getElementById('gSlider');
+var tV = document.getElementById('tVal'), gV = document.getElementById('gVal');
+var wire = document.getElementById('wire'), st = document.getElementById('state');
+var warn = document.getElementById('warn'), fm = document.getElementById('fm');
+var GN = ['拉很緊', '剛剛好', '放很鬆'];
+function draw() {
+  var t = parseInt(tS.value, 10), g = parseInt(gS.value, 10);
+  tV.textContent = t + ' °C';
+  gV.textContent = GN[g];
+  // 熱脹冷縮：溫度越高垂度越大；施工張力再加減
+  var sag = 14 + (t - 5) * 1.25 + (g - 1) * 20;
+  sag = Math.max(2, Math.min(88, sag));
+  wire.setAttribute('d', 'M 24 34 Q 150 ' + (34 + sag * 2) + ' 276 34');
+  var s, r, w = '';
+  if (sag > 72) {
+    s = '⚠️ 垂太低'; w = '↓ 離地面太近了';
+    r = '太鬆了。天氣一熱就垂得更低，會吃掉跟地面、樹木、建築物之間的安全間隔。';
+  } else if (sag < 8) {
+    s = '⚠️ 拉太緊';
+    r = '太緊了。台電官網就寫過：硬要繃緊，反而可能因為氣候變化而斷裂。';
+  } else {
+    s = '✅ 正常';
+    r = (t >= 30) ? '天氣熱，線變長垂得比較明顯——這是正常的，設計時就算進去了。'
+                  : (t <= 12 ? '天氣冷，線收縮所以看起來比較平——冬夏的垂度本來就不一樣。'
+                             : '這個垂度是設計出來的，不是施工不小心。');
+  }
+  warn.textContent = w;
+  st.textContent = s;
+  fm.textContent = '氣溫 ' + t + '°C ＋ ' + GN[g] + '　→　' +
+                   (sag > 72 ? '垂度過大' : (sag < 8 ? '張力過大' : '在合理範圍'));
+  say('r', r);
+  say('t', '把氣溫從冬天拉到夏天，看線的形狀怎麼變。');
+}
+tS.addEventListener('input', draw);
+gS.addEventListener('input', draw);
+draw();
+
+var y = new Date().getFullYear();
+document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+</script>
+</body>
+</html>

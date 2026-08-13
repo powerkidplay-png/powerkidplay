@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：這樣做安全嗎？
+  開發日期：2026-08-12
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記。保留所有權利。
+  ❌ 禁止複製程式碼至其他網站
+  ✅ 允許透過本站連結分享
+  授權洽詢：powerkidplay@gmail.com
+-->
+<title>這樣做安全嗎？</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff; font-size: 19px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 4px; }
+  .slider-row { margin-bottom: 16px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 2px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800; padding: 3px 13px;
+    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+  }
+  .val-a { background: #1565C0; }
+  .val-b { background: #18A99C; }
+  .val-c { background: #EF6C00; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input.tealThumb::-webkit-slider-thumb { background: #18A99C; }
+  input.tealThumb::-moz-range-thumb { background: #18A99C; }
+  input.orangeThumb::-webkit-slider-thumb { background: #EF6C00; }
+  input.orangeThumb::-moz-range-thumb { background: #EF6C00; }
+
+  .result-area {
+    margin: 4px 18px 16px;
+    background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
+    border-radius: 14px; padding: 15px 14px; text-align: center;
+  }
+  .result-label { font-size: 14px; color: #555; margin-bottom: 2px; }
+  .result-number { font-size: 19px; font-weight: 700; color: #1565C0; }
+  .big {
+    font-size: 42px; font-weight: 900; color: #0D47A1;
+    line-height: 1.05; display: inline-block; min-width: 60px;
+  }
+  .formula {
+    margin-top: 10px; font-size: 14px; color: #00695C;
+    background: #ffffff; border-radius: 10px; padding: 8px 6px;
+    font-weight: 700; border: 1px dashed #80CBC4;
+  }
+  .stage { padding: 0 18px 4px; }
+  .note { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
+  .note b { color: #00897B; font-size: 15px; }
+  .btn {
+    display: block; width: 100%; padding: 12px; margin-bottom: 9px;
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    border: 2px solid #BBDEFB; border-radius: 12px;
+    background: #F5FAFF; color: #0D47A1; cursor: pointer;
+    text-align: left; transition: all .15s ease;
+  }
+  .btn:hover { border-color: #1976D2; background: #E3F2FD; }
+  .btn.ok { border-color: #43A047; background: #E8F5E9; color: #1B5E20; }
+  .btn.no { border-color: #E53935; background: #FFEBEE; color: #B71C1C; }
+  .btn:disabled { cursor: default; opacity: .85; }
+  .dialogue {
+    margin: 12px 18px 0; padding: 11px 14px;
+    border-radius: 12px; font-size: 14px; line-height: 1.6; font-weight: 500;
+  }
+  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
+  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 15px 12px 17px; }
+  .scene {
+    background: #F5FAFF; border: 2px dashed #90CAF9; border-radius: 12px;
+    padding: 16px 14px; font-size: 15px; line-height: 1.65;
+    color: #0D47A1; font-weight: 600; margin-bottom: 12px; min-height: 74px;
+  }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">🐦 這樣做安全嗎？</div>
+
+  <div class="stage">
+    <div class="note">第 <b id="qn">1</b> / 6 題　｜　答對 <b id="okn">0</b> 題</div>
+    <div class="scene" id="scene">小鳥兩隻腳站在同一條電線上。</div>
+    <button class="btn" id="yes">✅ 安全</button>
+    <button class="btn" id="no">⛔ 危險</button>
+  </div>
+  <div class="result-area">
+    <div class="result-label" id="fbLbl">選一個看看</div>
+    <div class="formula" id="fb">這一題你怎麼想？</div>
+  </div>
+  <div class="stage"><button class="btn" id="next" style="display:none">➡️ 下一題</button></div>
+  <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：看清楚情境再選喔。</div>
+  <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：電這件事，不確定就不要碰——這是最重要的一句。</div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+<script>
+var turtleBox = document.getElementById('turtleBox');
+var rayBox    = document.getElementById('rayBox');
+function say(who, txt) {
+  if (who === 't') turtleBox.textContent = '🐢 海龜助教：' + txt;
+  else rayBox.textContent = '⚡ 電鱝老師：' + txt;
+}
+
+// ⚠️ 每一則的說法都對齊台電公開的用電安全宣導
+var Q = [
+ {s:'小鳥兩隻腳站在同一條電線上。', a:1,
+  w:'台電也是這樣說的：站在同一條線上通常不會觸電，因為電沒有「繞一圈」的路。'},
+ {s:'一隻大鳥張開翅膀，翅膀尖端碰到了旁邊另一條線。', a:0,
+  w:'危險。翅膀或尾巴碰到電位不同的線路或設備，就可能觸電——這是真的會發生的意外。'},
+ {s:'風箏卡在電線上了，你拿一根長長的竹竿想把它勾下來。', a:0,
+  w:'非常危險。台電宣導特別提醒：釣竿、長竿子都是電的良導體。要打 1911 請專業人員處理。'},
+ {s:'你看到有人在電桿上工作，想走近一點看清楚。', a:0,
+  w:'不要靠近。也不要攀爬、不要碰工具或設備、不要進入圍起來的施工範圍。'},
+ {s:'路上有一條電線掉在地上，看起來沒有火花。', a:0,
+  w:'絕對不要碰。台電宣導寫得很清楚：發現斷落電線切勿碰觸，要立刻通知台電。'},
+ {s:'在空曠的公園放風箏，離高壓電線很遠很遠。', a:1,
+  w:'這樣就對了。台電的宣導是「放風箏時請遠離高壓電線」——不是不能放，是要選對地方。'}
+];
+var i = 0, ok = 0, answered = false;
+var scene = document.getElementById('scene'), qn = document.getElementById('qn');
+var okn = document.getElementById('okn'), fb = document.getElementById('fb');
+var fbLbl = document.getElementById('fbLbl'), nx = document.getElementById('next');
+var by = document.getElementById('yes'), bn = document.getElementById('no');
+function load() {
+  answered = false;
+  scene.textContent = Q[i].s;
+  qn.textContent = i + 1; okn.textContent = ok;
+  by.className = 'btn'; bn.className = 'btn';
+  by.disabled = false; bn.disabled = false;
+  nx.style.display = 'none';
+  fbLbl.textContent = '選一個看看'; fb.textContent = '這一題你怎麼想？';
+  say('t', '看清楚情境再選喔。');
+}
+function ans(v) {
+  if (answered) return;
+  answered = true;
+  by.disabled = true; bn.disabled = true;
+  var right = (v === Q[i].a);
+  if (right) ok++;
+  (v ? by : bn).classList.add(right ? 'ok' : 'no');
+  (Q[i].a ? by : bn).classList.add('ok');
+  okn.textContent = ok;
+  fbLbl.textContent = right ? '✅ 答對了' : '❌ 再想一次';
+  fb.textContent = Q[i].a ? '這樣是安全的' : '這樣有危險';
+  say('r', Q[i].w);
+  if (i < Q.length - 1) { nx.style.display = 'block'; nx.textContent = '➡️ 下一題'; }
+  else {
+    nx.style.display = 'block'; nx.textContent = '🔄 再玩一次';
+    say('t', '六題結束，你答對 ' + ok + ' 題。記住最重要的一句：不確定就不要碰，打 1911。');
+  }
+}
+by.addEventListener('click', function () { ans(1); });
+bn.addEventListener('click', function () { ans(0); });
+nx.addEventListener('click', function () {
+  if (i < Q.length - 1) i++; else { i = 0; ok = 0; }
+  load();
+});
+load();
+
+var y = new Date().getFullYear();
+document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+</script>
+</body>
+</html>

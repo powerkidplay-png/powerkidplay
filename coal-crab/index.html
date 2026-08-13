@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：誰在半夜還在發電？
+  開發日期：2026-08-12
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記。保留所有權利。
+  ❌ 禁止複製程式碼至其他網站
+  ✅ 允許透過本站連結分享
+  授權洽詢：powerkidplay@gmail.com
+-->
+<title>誰在半夜還在發電？</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff; font-size: 19px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 4px; }
+  .slider-row { margin-bottom: 16px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 2px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800; padding: 3px 13px;
+    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+  }
+  .val-a { background: #1565C0; }
+  .val-b { background: #18A99C; }
+  .val-c { background: #EF6C00; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input.tealThumb::-webkit-slider-thumb { background: #18A99C; }
+  input.tealThumb::-moz-range-thumb { background: #18A99C; }
+  input.orangeThumb::-webkit-slider-thumb { background: #EF6C00; }
+  input.orangeThumb::-moz-range-thumb { background: #EF6C00; }
+
+  .result-area {
+    margin: 4px 18px 16px;
+    background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
+    border-radius: 14px; padding: 15px 14px; text-align: center;
+  }
+  .result-label { font-size: 14px; color: #555; margin-bottom: 2px; }
+  .result-number { font-size: 19px; font-weight: 700; color: #1565C0; }
+  .big {
+    font-size: 42px; font-weight: 900; color: #0D47A1;
+    line-height: 1.05; display: inline-block; min-width: 60px;
+  }
+  .formula {
+    margin-top: 10px; font-size: 14px; color: #00695C;
+    background: #ffffff; border-radius: 10px; padding: 8px 6px;
+    font-weight: 700; border: 1px dashed #80CBC4;
+  }
+  .stage { padding: 0 18px 4px; }
+  .note { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
+  .note b { color: #00897B; font-size: 15px; }
+  .btn {
+    display: block; width: 100%; padding: 12px; margin-bottom: 9px;
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    border: 2px solid #BBDEFB; border-radius: 12px;
+    background: #F5FAFF; color: #0D47A1; cursor: pointer;
+    text-align: left; transition: all .15s ease;
+  }
+  .btn:hover { border-color: #1976D2; background: #E3F2FD; }
+  .btn.ok { border-color: #43A047; background: #E8F5E9; color: #1B5E20; }
+  .btn.no { border-color: #E53935; background: #FFEBEE; color: #B71C1C; }
+  .btn:disabled { cursor: default; opacity: .85; }
+  .dialogue {
+    margin: 12px 18px 0; padding: 11px 14px;
+    border-radius: 12px; font-size: 14px; line-height: 1.6; font-weight: 500;
+  }
+  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
+  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 15px 12px 17px; }
+  .layer { margin-bottom: 5px; }
+  .layer-lbl { font-size: 12px; color: #555; font-weight: 700; margin-bottom: 2px; }
+  .layer-bg { background: #ECF2F7; border-radius: 6px; height: 26px; overflow: hidden; }
+  .layer-fill {
+    height: 100%; border-radius: 6px; transition: width .35s ease;
+    color: #fff; font-size: 12px; font-weight: 800; line-height: 26px;
+    text-align: right; padding-right: 7px; white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">🦀 誰在半夜還在發電？</div>
+
+  <div class="control-area">
+    <div class="slider-row">
+      <div class="slider-head">
+        <span class="lbl">現在幾點<small>拉一整天</small></span>
+        <span class="val-badge val-a" id="hVal">14:00</span>
+      </div>
+      <input type="range" id="hSlider" min="0" max="23" step="1" value="14">
+    </div>
+  </div>
+  <div class="stage">
+    <div class="note">這個時間，發電的是這些人</div>
+    <div id="stack"></div>
+  </div>
+  <div class="result-area">
+    <div class="result-label">誰的厚度幾乎沒有變？</div>
+    <div class="result-number"><span class="big" style="font-size:28px" id="ans">🦀 燃煤</span></div>
+    <div class="formula">厚度不變的那一條，就是「基載」的樣子</div>
+  </div>
+  <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：拉拉看不同時間，特別注意燃煤那一條的厚度。</div>
+  <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：有人負責衝刺，就要有人負責一直跑。</div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+<script>
+var turtleBox = document.getElementById('turtleBox');
+var rayBox    = document.getElementById('rayBox');
+function say(who, txt) {
+  if (who === 't') turtleBox.textContent = '🐢 海龜助教：' + txt;
+  else rayBox.textContent = '⚡ 電鱝老師：' + txt;
+}
+
+// 形狀取自台電「用電曲線圖(依能源別)」的典型樣貌，刻意不寫絕對數字
+var L = [
+  {n:'🦀 燃煤（基載）', c:'#6D4C41', f:function(){ return 100; }},
+  {n:'⚛️ 核能（基載）', c:'#5E35B1', f:function(){ return 100; }},
+  {n:'🔥 燃氣（中載）', c:'#EF6C00', f:function(h){ return h>=8&&h<=22 ? 95 : 45; }},
+  {n:'☀️ 太陽光電',     c:'#FDD835', f:function(h){ return (h>=6&&h<=18) ? Math.round(100*Math.sin((h-6)/12*Math.PI)) : 0; }},
+  {n:'💨 風力',         c:'#26C6DA', f:function(h){ return 30 + ((h*37)%45); }},
+  {n:'🐙 抽蓄水力',     c:'#00897B', f:function(h){ return (h>=17&&h<=21) ? 90 : (h>=9&&h<=15 ? 0 : 15); }}
+];
+var stack = document.getElementById('stack');
+var hS = document.getElementById('hSlider'), hV = document.getElementById('hVal');
+for (var i = 0; i < L.length; i++) {
+  var d = document.createElement('div');
+  d.className = 'layer';
+  d.innerHTML = '<div class="layer-lbl">' + L[i].n + '</div>' +
+                '<div class="layer-bg"><div class="layer-fill" style="background:' + L[i].c + '"></div></div>';
+  stack.appendChild(d);
+}
+var fills = stack.querySelectorAll('.layer-fill');
+function draw() {
+  var h = parseInt(hS.value, 10);
+  hV.textContent = ('0' + h).slice(-2) + ':00';
+  for (var i = 0; i < L.length; i++) {
+    var v = L[i].f(h);
+    fills[i].style.width = v + '%';
+    fills[i].textContent = v > 12 ? v : '';
+  }
+  if (h >= 0 && h <= 5) {
+    say('t', '半夜了。太陽光電是 0，抽蓄水力也在休息——還在發的就是基載那幾個。');
+    say('r', '這就是為什麼還需要燃煤：晚上的電要有人扛。');
+  } else if (h >= 11 && h <= 14) {
+    say('t', '中午太陽光電最強的時候，你看牠那一條有多厚。');
+    say('r', '但你注意燃煤那一條——牠幾乎沒有變。');
+  } else if (h >= 18 && h <= 20) {
+    say('t', '傍晚！太陽光電掉下去了，抽蓄水力衝上來。');
+    say('r', '這就是夜尖峰。白天搬上山的水，現在放下來。');
+  } else {
+    say('t', '拉拉看不同時間，特別注意燃煤那一條的厚度。');
+    say('r', '厚度不變的那個，就是基載。');
+  }
+}
+hS.addEventListener('input', draw);
+draw();
+
+var y = new Date().getFullYear();
+document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+</script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：抽蓄水力搬運工
+  開發日期：2026-08-12
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記。保留所有權利。
+  ❌ 禁止複製程式碼至其他網站
+  ✅ 允許透過本站連結分享
+  授權洽詢：powerkidplay@gmail.com
+-->
+<title>抽蓄水力搬運工</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff; font-size: 19px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 4px; }
+  .slider-row { margin-bottom: 16px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 2px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800; padding: 3px 13px;
+    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+  }
+  .val-a { background: #1565C0; }
+  .val-b { background: #18A99C; }
+  .val-c { background: #EF6C00; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input.tealThumb::-webkit-slider-thumb { background: #18A99C; }
+  input.tealThumb::-moz-range-thumb { background: #18A99C; }
+  input.orangeThumb::-webkit-slider-thumb { background: #EF6C00; }
+  input.orangeThumb::-moz-range-thumb { background: #EF6C00; }
+
+  .result-area {
+    margin: 4px 18px 16px;
+    background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
+    border-radius: 14px; padding: 15px 14px; text-align: center;
+  }
+  .result-label { font-size: 14px; color: #555; margin-bottom: 2px; }
+  .result-number { font-size: 19px; font-weight: 700; color: #1565C0; }
+  .big {
+    font-size: 42px; font-weight: 900; color: #0D47A1;
+    line-height: 1.05; display: inline-block; min-width: 60px;
+  }
+  .formula {
+    margin-top: 10px; font-size: 14px; color: #00695C;
+    background: #ffffff; border-radius: 10px; padding: 8px 6px;
+    font-weight: 700; border: 1px dashed #80CBC4;
+  }
+  .stage { padding: 0 18px 4px; }
+  .note { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
+  .note b { color: #00897B; font-size: 15px; }
+  .btn {
+    display: block; width: 100%; padding: 12px; margin-bottom: 9px;
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    border: 2px solid #BBDEFB; border-radius: 12px;
+    background: #F5FAFF; color: #0D47A1; cursor: pointer;
+    text-align: left; transition: all .15s ease;
+  }
+  .btn:hover { border-color: #1976D2; background: #E3F2FD; }
+  .btn.ok { border-color: #43A047; background: #E8F5E9; color: #1B5E20; }
+  .btn.no { border-color: #E53935; background: #FFEBEE; color: #B71C1C; }
+  .btn:disabled { cursor: default; opacity: .85; }
+  .dialogue {
+    margin: 12px 18px 0; padding: 11px 14px;
+    border-radius: 12px; font-size: 14px; line-height: 1.6; font-weight: 500;
+  }
+  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
+  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 15px 12px 17px; }
+  .pool { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 6px 0 10px; }
+  .pool-box {
+    position: relative; width: 190px; height: 54px; background: #ECF2F7;
+    border: 2px solid #B0BEC5; border-radius: 8px; overflow: hidden;
+  }
+  .water { position: absolute; bottom: 0; left: 0; right: 0; transition: height .4s ease; }
+  .up { background: linear-gradient(180deg,#4FC3F7,#0288D1); height: 50%; }
+  .dn { background: linear-gradient(180deg,#4DD0E1,#00838F); height: 50%; }
+  .pool-tag {
+    position: absolute; top: 4px; left: 7px; font-size: 12px;
+    font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.4);
+  }
+  .pipe { font-size: 15px; color: #78909C; font-weight: 900; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">🐙 抽蓄水力搬運工</div>
+
+  <div class="stage">
+    <div class="note">現在是 <b id="clock">00:00</b>　｜　上池水量 <b id="lvl">50</b>％</div>
+    <div class="pool">
+      <div class="pool-box"><div class="water up" id="upW"></div><span class="pool-tag">上池</span></div>
+      <div class="pipe" id="pipe">｜</div>
+      <div class="pool-box"><div class="water dn" id="dnW"></div><span class="pool-tag">下池</span></div>
+    </div>
+  </div>
+  <div class="control-area">
+    <div class="slider-row">
+      <div class="slider-head">
+        <span class="lbl">時間<small>拉拉看一整天</small></span>
+        <span class="val-badge val-a" id="hVal">00:00</span>
+      </div>
+      <input type="range" id="hSlider" min="0" max="23" step="1" value="0">
+    </div>
+  </div>
+  <div class="stage">
+    <button class="btn" id="pump">⬆️ 抽水上山（用電）</button>
+    <button class="btn" id="gen">⬇️ 放水發電（供電）</button>
+  </div>
+  <div class="result-area">
+    <div class="result-label">你這一天的調度</div>
+    <div class="result-number"><span class="big" id="score">0</span> 分</div>
+    <div class="formula" id="fm">在對的時間做對的事，就會得分</div>
+  </div>
+  <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：拉時間軸選時段，再決定要抽水還是放水。什麼時候做，比做什麼還重要。</div>
+  <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：這個時段沒什麼特別，休息也可以。</div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+<script>
+var turtleBox = document.getElementById('turtleBox');
+var rayBox    = document.getElementById('rayBox');
+function say(who, txt) {
+  if (who === 't') turtleBox.textContent = '🐢 海龜助教：' + txt;
+  else rayBox.textContent = '⚡ 電鱝老師：' + txt;
+}
+
+var h = 0, lvl = 50, score = 0, acted = {};
+var hSlider = document.getElementById('hSlider');
+var hVal = document.getElementById('hVal'), clock = document.getElementById('clock');
+var upW = document.getElementById('upW'), dnW = document.getElementById('dnW');
+var lvlEl = document.getElementById('lvl'), scoreEl = document.getElementById('score');
+var fm = document.getElementById('fm');
+
+// 白天太陽光電多、電便宜 → 適合抽水；傍晚夜尖峰 → 適合放水發電
+function phase(t) {
+  if (t >= 9 && t <= 15) return 'pump';
+  if (t >= 17 && t <= 21) return 'gen';
+  return 'idle';
+}
+function draw() {
+  var s = ('0' + h).slice(-2) + ':00';
+  hVal.textContent = s; clock.textContent = s;
+  upW.style.height = lvl + '%';
+  dnW.style.height = (100 - lvl) + '%';
+  lvlEl.textContent = lvl;
+  scoreEl.textContent = score;
+  var p = phase(h);
+  if (p === 'pump') say('r', '現在太陽光電很多，電比較有餘裕——是搬水上山的好時機。');
+  else if (p === 'gen') say('r', '傍晚了，太陽下山但大家還在用電。這就是夜尖峰。');
+  else say('r', '這個時段沒什麼特別，休息也可以。');
+}
+hSlider.addEventListener('input', function () { h = parseInt(this.value, 10); draw(); });
+
+function act(kind) {
+  if (acted[h]) { say('t', '這個小時已經做過事了，換個時間吧。'); return; }
+  var p = phase(h);
+  if (kind === 'pump') {
+    if (lvl >= 100) { say('t', '上池滿了，裝不下了！'); return; }
+    lvl = Math.min(100, lvl + 15);
+    if (p === 'pump') { score += 10; say('t', '抽得好！白天電有餘裕，這時候搬水最划算。+10 分'); }
+    else { score -= 5; say('t', '抽是抽上去了，可是這個時間點用電抽水不太划算。−5 分'); }
+  } else {
+    if (lvl <= 0) { say('t', '上池沒水了，放不出來——水要先搬上去才有得放。'); return; }
+    lvl = Math.max(0, lvl - 15);
+    if (p === 'gen') { score += 15; say('t', '漂亮！夜尖峰放水發電，這正是抽蓄水力存在的理由。+15 分'); }
+    else { score -= 5; say('t', '現在放水有點可惜，留到傍晚更有價值。−5 分'); }
+  }
+  acted[h] = 1;
+  fm.textContent = '已操作 ' + Object.keys(acted).length + ' 個小時';
+  draw();
+}
+document.getElementById('pump').addEventListener('click', function () { act('pump'); });
+document.getElementById('gen').addEventListener('click', function () { act('gen'); });
+draw();
+
+var y = new Date().getFullYear();
+document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+</script>
+</body>
+</html>

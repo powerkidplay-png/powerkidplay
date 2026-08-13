@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：風機開不開？風速轉盤
+  開發日期：2026-08-12
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記。保留所有權利。
+  ❌ 禁止複製程式碼至其他網站
+  ✅ 允許透過本站連結分享
+  授權洽詢：powerkidplay@gmail.com
+-->
+<title>風機開不開？風速轉盤</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff; font-size: 19px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 4px; }
+  .slider-row { margin-bottom: 16px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 2px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800; padding: 3px 13px;
+    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+  }
+  .val-a { background: #1565C0; }
+  .val-b { background: #18A99C; }
+  .val-c { background: #EF6C00; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input.tealThumb::-webkit-slider-thumb { background: #18A99C; }
+  input.tealThumb::-moz-range-thumb { background: #18A99C; }
+  input.orangeThumb::-webkit-slider-thumb { background: #EF6C00; }
+  input.orangeThumb::-moz-range-thumb { background: #EF6C00; }
+
+  .result-area {
+    margin: 4px 18px 16px;
+    background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
+    border-radius: 14px; padding: 15px 14px; text-align: center;
+  }
+  .result-label { font-size: 14px; color: #555; margin-bottom: 2px; }
+  .result-number { font-size: 19px; font-weight: 700; color: #1565C0; }
+  .big {
+    font-size: 42px; font-weight: 900; color: #0D47A1;
+    line-height: 1.05; display: inline-block; min-width: 60px;
+  }
+  .formula {
+    margin-top: 10px; font-size: 14px; color: #00695C;
+    background: #ffffff; border-radius: 10px; padding: 8px 6px;
+    font-weight: 700; border: 1px dashed #80CBC4;
+  }
+  .stage { padding: 0 18px 4px; }
+  .note { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
+  .note b { color: #00897B; font-size: 15px; }
+  .btn {
+    display: block; width: 100%; padding: 12px; margin-bottom: 9px;
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    border: 2px solid #BBDEFB; border-radius: 12px;
+    background: #F5FAFF; color: #0D47A1; cursor: pointer;
+    text-align: left; transition: all .15s ease;
+  }
+  .btn:hover { border-color: #1976D2; background: #E3F2FD; }
+  .btn.ok { border-color: #43A047; background: #E8F5E9; color: #1B5E20; }
+  .btn.no { border-color: #E53935; background: #FFEBEE; color: #B71C1C; }
+  .btn:disabled { cursor: default; opacity: .85; }
+  .dialogue {
+    margin: 12px 18px 0; padding: 11px 14px;
+    border-radius: 12px; font-size: 14px; line-height: 1.6; font-weight: 500;
+  }
+  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
+  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 15px 12px 17px; }
+  .turbine {
+    font-size: 62px; text-align: center; margin: 4px 0 8px;
+    transition: transform .3s ease, opacity .3s ease;
+  }
+  .turbine.spin { animation: sp 1.4s linear infinite; }
+  .turbine.fast { animation: sp .45s linear infinite; }
+  .turbine.stop { opacity: .35; }
+  @keyframes sp { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">🐬 風機開不開？風速轉盤</div>
+
+  <div class="control-area">
+    <div class="slider-row">
+      <div class="slider-head">
+        <span class="lbl">風速<small>拉拉看</small></span>
+        <span class="val-badge val-a" id="vVal">8 m/s</span>
+      </div>
+      <input type="range" id="vSlider" min="0" max="35" step="1" value="8">
+    </div>
+  </div>
+  <div class="stage">
+    <div class="note">大約相當於蒲福 <b id="bf">5</b> 級　｜　<span id="feel">有葉的小樹開始搖擺</span></div>
+    <div class="turbine" id="turbine">🌀</div>
+  </div>
+  <div class="result-area">
+    <div class="result-label" id="stateLbl">風機狀態</div>
+    <div class="result-number"><span class="big" id="state">發電中</span></div>
+    <div class="formula" id="fm">切入 2.5–4　｜　額定 12–15　｜　切出 約 25（m/s）</div>
+  </div>
+  <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：拉風速看看風機什麼時候轉、什麼時候停。</div>
+  <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：風不是越大越好，剛剛好才好。</div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+<script>
+var turtleBox = document.getElementById('turtleBox');
+var rayBox    = document.getElementById('rayBox');
+function say(who, txt) {
+  if (who === 't') turtleBox.textContent = '🐢 海龜助教：' + txt;
+  else rayBox.textContent = '⚡ 電鱝老師：' + txt;
+}
+
+// ⚠️ 級距取自中央氣象署蒲福風級表；切入／額定／切出取自台電與能源署公開說明
+var BF = [
+ [0.3,0,'靜，煙直上'],[1.5,1,'僅煙能表示風向'],[3.3,2,'人面感覺有風，樹葉搖動'],
+ [5.4,3,'樹葉及小枝搖動不息'],[7.9,4,'塵土及碎紙被吹揚'],[10.7,5,'有葉的小樹開始搖擺'],
+ [13.8,6,'電線呼呼響，張傘困難'],[17.1,7,'全樹搖動，迎風步行不便'],[20.7,8,'小樹枝折斷，步行顯著困難'],
+ [24.4,9,'屋瓦煙囪受損，樹枝折斷'],[28.4,10,'樹木連根拔起，建築物受損'],
+ [32.6,11,'廣泛破壞'],[99,12,'狂風，重大破壞']
+];
+var vS = document.getElementById('vSlider'), vVal = document.getElementById('vVal');
+var bf = document.getElementById('bf'), feel = document.getElementById('feel');
+var st = document.getElementById('state'), fm = document.getElementById('fm');
+var tb = document.getElementById('turbine');
+function draw() {
+  var v = parseInt(vS.value, 10);
+  vVal.textContent = v + ' m/s';
+  for (var i = 0; i < BF.length; i++) {
+    if (v <= BF[i][0]) { bf.textContent = BF[i][1]; feel.textContent = BF[i][2]; break; }
+  }
+  var cls = 'turbine', s, r;
+  if (v < 3) {
+    s = '還沒轉'; cls += ' stop';
+    r = '風還不夠。要到「切入風速」，大約 2.5～4 m/s，風機才會開始發電。';
+  } else if (v < 12) {
+    s = '發電中'; cls += ' spin';
+    r = '轉起來了。風越大發得越多，這一段是最常見的狀態。';
+  } else if (v < 25) {
+    s = '滿載發電'; cls += ' fast';
+    r = '到額定風速了，風機已經接近最大功率——再大也不會發更多。';
+  } else if (v < 34) {
+    s = '降載或停機'; cls += ' stop';
+    r = '超過切出風速（常見約 25 m/s，約蒲福 10 級）。有些機型先降載，有些直接停。';
+  } else {
+    s = '停機'; cls += ' stop';
+    r = '這種風速幾乎所有機型都停了。停機不是故障，是保護設備。';
+  }
+  st.textContent = s; tb.className = cls;
+  say('r', r);
+  if (v >= 25) say('t', '風最大的時候反而不發電，這點大家最容易想錯。');
+  else say('t', '現在是 ' + v + ' m/s，風機 ' + s + '。');
+}
+vS.addEventListener('input', draw);
+draw();
+
+var y = new Date().getFullYear();
+document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+</script>
+</body>
+</html>

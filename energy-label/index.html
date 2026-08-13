@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：能效分級比一比
+  開發日期：2026-08-12
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記。保留所有權利。
+  ❌ 禁止複製程式碼至其他網站
+  ✅ 允許透過本站連結分享
+  授權洽詢：powerkidplay@gmail.com
+-->
+<title>能效分級比一比</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff; font-size: 19px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 4px; }
+  .slider-row { margin-bottom: 16px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 2px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800; padding: 3px 13px;
+    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+  }
+  .val-a { background: #1565C0; }
+  .val-b { background: #18A99C; }
+  .val-c { background: #EF6C00; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input.tealThumb::-webkit-slider-thumb { background: #18A99C; }
+  input.tealThumb::-moz-range-thumb { background: #18A99C; }
+  input.orangeThumb::-webkit-slider-thumb { background: #EF6C00; }
+  input.orangeThumb::-moz-range-thumb { background: #EF6C00; }
+
+  .result-area {
+    margin: 4px 18px 16px;
+    background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
+    border-radius: 14px; padding: 15px 14px; text-align: center;
+  }
+  .result-label { font-size: 14px; color: #555; margin-bottom: 2px; }
+  .result-number { font-size: 19px; font-weight: 700; color: #1565C0; }
+  .big {
+    font-size: 42px; font-weight: 900; color: #0D47A1;
+    line-height: 1.05; display: inline-block; min-width: 60px;
+  }
+  .formula {
+    margin-top: 10px; font-size: 14px; color: #00695C;
+    background: #ffffff; border-radius: 10px; padding: 8px 6px;
+    font-weight: 700; border: 1px dashed #80CBC4;
+  }
+  .stage { padding: 0 18px 4px; }
+  .note { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
+  .note b { color: #00897B; font-size: 15px; }
+  .btn {
+    display: block; width: 100%; padding: 12px; margin-bottom: 9px;
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    border: 2px solid #BBDEFB; border-radius: 12px;
+    background: #F5FAFF; color: #0D47A1; cursor: pointer;
+    text-align: left; transition: all .15s ease;
+  }
+  .btn:hover { border-color: #1976D2; background: #E3F2FD; }
+  .btn.ok { border-color: #43A047; background: #E8F5E9; color: #1B5E20; }
+  .btn.no { border-color: #E53935; background: #FFEBEE; color: #B71C1C; }
+  .btn:disabled { cursor: default; opacity: .85; }
+  .dialogue {
+    margin: 12px 18px 0; padding: 11px 14px;
+    border-radius: 12px; font-size: 14px; line-height: 1.6; font-weight: 500;
+  }
+  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
+  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 15px 12px 17px; }
+  .pick { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    flex: 1 1 auto; padding: 10px 8px; font-family: inherit;
+    font-size: 14px; font-weight: 700; border: 2px solid #BBDEFB;
+    border-radius: 10px; background: #F5FAFF; color: #0D47A1;
+    cursor: pointer; text-align: center; transition: all .15s;
+  }
+  .chip:hover { border-color: #1976D2; }
+  .chip.on { background: #1565C0; border-color: #1565C0; color: #fff; }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">🏷️ 能效分級比一比</div>
+
+  <div class="stage">
+    <div class="note">選一種電器，再選能效等級</div>
+    <div class="pick" id="appl"></div>
+    <div class="note" style="margin-top:10px">能源效率分級</div>
+    <div class="pick" id="lv"></div>
+  </div>
+  <div class="result-area">
+    <div class="result-label">標示上的「年度耗電量」大約是</div>
+    <div class="result-number"><span class="big" id="kwh">—</span> 度／年</div>
+    <div class="formula" id="fm">⚠️ 這是標準測試條件下的估算，不是你家的實際用量</div>
+  </div>
+  <div class="stage">
+    <div class="note">和 <b>5 級</b>比，一年差 <b id="diff">—</b> 度</div>
+  </div>
+  <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：選一種電器和等級，我算給你看。</div>
+  <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：1 級最省電。挑的時候先從一年開最久的那幾樣下手。</div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+<script>
+var turtleBox = document.getElementById('turtleBox');
+var rayBox    = document.getElementById('rayBox');
+function say(who, txt) {
+  if (who === 't') turtleBox.textContent = '🐢 海龜助教：' + txt;
+  else rayBox.textContent = '⚡ 電鱝老師：' + txt;
+}
+
+// ⚠️ 級距為示意用的相對關係，用來說明「1 級最省」；實際數值請查能源署分級標示系統
+var A = [
+  {n:'❄️ 冷氣', base:1400},
+  {n:'🧊 冰箱', base:600},
+  {n:'💧 除濕機', base:500},
+  {n:'🍚 電鍋', base:300}
+];
+var K = [1.00, 1.12, 1.26, 1.42, 1.60];  // 1 級 → 5 級的相對耗電
+var ai = 0, li = 0;
+var wa = document.getElementById('appl'), wl = document.getElementById('lv');
+var kwh = document.getElementById('kwh'), diff = document.getElementById('diff');
+var fm = document.getElementById('fm');
+function mk(parent, labels, get, set) {
+  parent.innerHTML = '';
+  for (var i = 0; i < labels.length; i++) {
+    (function (i) {
+      var b = document.createElement('button');
+      b.className = 'chip' + (get() === i ? ' on' : '');
+      b.textContent = labels[i];
+      b.addEventListener('click', function () { set(i); draw(); });
+      parent.appendChild(b);
+    })(i);
+  }
+}
+function draw() {
+  mk(wa, A.map(function (x) { return x.n; }), function () { return ai; }, function (v) { ai = v; });
+  mk(wl, ['1 級', '2 級', '3 級', '4 級', '5 級'], function () { return li; }, function (v) { li = v; });
+  var v = Math.round(A[ai].base * K[li]);
+  var v5 = Math.round(A[ai].base * K[4]);
+  kwh.textContent = v;
+  diff.textContent = (v5 - v);
+  fm.textContent = (li === 0)
+    ? '✅ 1 級是最省電的等級——同一類產品裡效率最高'
+    : '⚠️ 這是標準測試條件下的估算，不是你家的實際用量';
+  if (li === 0) {
+    say('t', A[ai].n + ' 選 1 級，一年比 5 級少用大約 ' + (v5 - v) + ' 度。');
+    say('r', '記住方向就好：數字越小越省電，1 級最省。');
+  } else if (li === 4) {
+    say('t', '5 級是這張標示裡最耗電的一格。');
+    say('r', '但 5 級不代表不合格——它仍然通過了法規的最低標準。');
+  } else {
+    say('t', '往左邊選選看，看看差多少。');
+    say('r', '挑電器的時候，先看「一年會開多久」的那幾樣：冷氣占家庭用電最多，其次是冰箱。');
+  }
+}
+draw();
+
+var y = new Date().getFullYear();
+document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+</script>
+</body>
+</html>

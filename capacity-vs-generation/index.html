@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：招牌 vs 實際 對照器
+  開發日期：2026-08-12
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記。保留所有權利。
+  ❌ 禁止複製程式碼至其他網站
+  ✅ 允許透過本站連結分享
+  授權洽詢：powerkidplay@gmail.com
+-->
+<title>招牌 vs 實際 對照器</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff; font-size: 19px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 4px; }
+  .slider-row { margin-bottom: 16px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 2px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800; padding: 3px 13px;
+    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+  }
+  .val-a { background: #1565C0; }
+  .val-b { background: #18A99C; }
+  .val-c { background: #EF6C00; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input.tealThumb::-webkit-slider-thumb { background: #18A99C; }
+  input.tealThumb::-moz-range-thumb { background: #18A99C; }
+  input.orangeThumb::-webkit-slider-thumb { background: #EF6C00; }
+  input.orangeThumb::-moz-range-thumb { background: #EF6C00; }
+
+  .result-area {
+    margin: 4px 18px 16px;
+    background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
+    border-radius: 14px; padding: 15px 14px; text-align: center;
+  }
+  .result-label { font-size: 14px; color: #555; margin-bottom: 2px; }
+  .result-number { font-size: 19px; font-weight: 700; color: #1565C0; }
+  .big {
+    font-size: 42px; font-weight: 900; color: #0D47A1;
+    line-height: 1.05; display: inline-block; min-width: 60px;
+  }
+  .formula {
+    margin-top: 10px; font-size: 14px; color: #00695C;
+    background: #ffffff; border-radius: 10px; padding: 8px 6px;
+    font-weight: 700; border: 1px dashed #80CBC4;
+  }
+  .stage { padding: 0 18px 4px; }
+  .note { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
+  .note b { color: #00897B; font-size: 15px; }
+  .btn {
+    display: block; width: 100%; padding: 12px; margin-bottom: 9px;
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    border: 2px solid #BBDEFB; border-radius: 12px;
+    background: #F5FAFF; color: #0D47A1; cursor: pointer;
+    text-align: left; transition: all .15s ease;
+  }
+  .btn:hover { border-color: #1976D2; background: #E3F2FD; }
+  .btn.ok { border-color: #43A047; background: #E8F5E9; color: #1B5E20; }
+  .btn.no { border-color: #E53935; background: #FFEBEE; color: #B71C1C; }
+  .btn:disabled { cursor: default; opacity: .85; }
+  .dialogue {
+    margin: 12px 18px 0; padding: 11px 14px;
+    border-radius: 12px; font-size: 14px; line-height: 1.6; font-weight: 500;
+  }
+  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
+  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 15px 12px 17px; }
+  .bar-wrap { padding-bottom: 6px; }
+  .bar-lbl { font-size: 13px; color: #555; margin: 6px 0 4px; font-weight: 700; }
+  .bar-bg { background: #ECF2F7; border-radius: 8px; height: 34px; overflow: hidden; }
+  .bar-fill {
+    height: 100%; border-radius: 8px; color: #fff; font-weight: 800;
+    font-size: 14px; line-height: 34px; text-align: right; padding-right: 9px;
+    transition: width .45s cubic-bezier(.3,1.2,.5,1); white-space: nowrap;
+  }
+  .bar-cap { background: #90A4AE; }
+  .bar-act { background: linear-gradient(90deg,#18A99C,#00897B); }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">🏷️ 招牌 vs 實際 對照器</div>
+
+  <div class="stage">
+    <div class="note">選一種發電方式，看牠的<b>招牌</b>和<b>實際發出來的</b>差多少</div>
+    <button class="btn" data-k="solar">☀️ 太陽光電</button>
+    <button class="btn" data-k="wind">💨 離岸風電</button>
+    <button class="btn" data-k="coal">🦀 燃煤</button>
+    <button class="btn" data-k="gas">🔥 燃氣</button>
+  </div>
+  <div class="result-area">
+    <div class="result-label">裝置容量 100 萬瓩的電廠，長期平均實際發出</div>
+    <div class="result-number"><span class="big" id="out">—</span> 萬瓩</div>
+    <div class="formula" id="fm">先在上面選一種</div>
+  </div>
+  <div class="stage">
+    <div class="bar-wrap">
+      <div class="bar-lbl">招牌（裝置容量）</div>
+      <div class="bar-bg"><div class="bar-fill bar-cap" style="width:100%">100</div></div>
+      <div class="bar-lbl">實際（長期平均）</div>
+      <div class="bar-bg"><div class="bar-fill bar-act" id="actBar" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：上面四個按按看，你會發現招牌一樣大，實際差很多。</div>
+  <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：裝置容量是「最多能發多少」，不是「實際發了多少」。</div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+<script>
+var turtleBox = document.getElementById('turtleBox');
+var rayBox    = document.getElementById('rayBox');
+function say(who, txt) {
+  if (who === 't') turtleBox.textContent = '🐢 海龜助教：' + txt;
+  else rayBox.textContent = '⚡ 電鱝老師：' + txt;
+}
+
+var D = {
+  solar: {n:'太陽光電', cf:14, t:'太陽只有白天有，而且會被雲擋住。'},
+  wind:  {n:'離岸風電', cf:30, t:'台電說明風力的容量因數接近三成。'},
+  coal:  {n:'燃煤',     cf:70, t:'只要不歲修不故障，牠可以一直跑。'},
+  gas:   {n:'燃氣',     cf:60, t:'跟著用電需求走，用電少的時候會降下來。'}
+};
+var out = document.getElementById('out');
+var fm  = document.getElementById('fm');
+var actBar = document.getElementById('actBar');
+var btns = document.querySelectorAll('.btn[data-k]');
+for (var i = 0; i < btns.length; i++) {
+  btns[i].addEventListener('click', function () {
+    for (var j = 0; j < btns.length; j++) btns[j].classList.remove('ok');
+    this.classList.add('ok');
+    var d = D[this.getAttribute('data-k')];
+    out.textContent = d.cf;
+    fm.textContent = '100 萬瓩 × 容量因數 ' + d.cf + '% = ' + d.cf + ' 萬瓩';
+    actBar.style.width = d.cf + '%';
+    actBar.textContent = d.cf;
+    say('t', d.n + '的招牌一樣是 100 萬瓩，但實際只有 ' + d.cf + ' 萬瓩左右。');
+    say('r', d.t);
+  });
+}
+
+var y = new Date().getFullYear();
+document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+</script>
+</body>
+</html>
