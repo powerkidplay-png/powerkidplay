@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：兩個供電能力
+  開發日期：2026-08-17
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，請先來信告知：
+  powerkidplay@gmail.com
+-->
+<title>兩個供電能力</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px; -webkit-tap-highlight-color: transparent;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #fff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,.16); overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2); color: #fff;
+    font-size: 19px; font-weight: 700; text-align: center;
+    padding: 15px 12px 13px; letter-spacing: .5px;
+  }
+  .title-bar small { display: block; font-size: 12px; font-weight: 400; opacity: .9; margin-top: 3px; }
+
+  .chart { padding: 10px 12px 0; }
+  svg { width: 100%; height: auto; display: block; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center;
+    font-size: 11.5px; color: #546E7A; padding: 6px 12px 2px;
+  }
+  .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+  .slider-row { padding: 6px 16px 2px; }
+  .slider-head {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;
+  }
+  .slider-head .lbl { font-size: 14px; font-weight: 700; color: #2a2a2a; }
+  .val-badge {
+    font-size: 18px; font-weight: 800; padding: 3px 14px; border-radius: 20px;
+    color: #fff; background: #1565C0; font-variant-numeric: tabular-nums;
+  }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 10px;
+    border-radius: 6px; background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 30px; height: 30px;
+    border-radius: 50%; background: #1565C0; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%; background: #1565C0;
+    border: 4px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); cursor: pointer;
+  }
+
+  .nums { padding: 10px 14px 2px; }
+  .nrow {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 13.5px; padding: 5px 10px; border-radius: 9px; margin-bottom: 5px;
+  }
+  .nrow b { font-variant-numeric: tabular-nums; font-size: 15px; }
+  .n-fix  { background: #F3E5F5; color: #6A1B9A; }
+  .n-now  { background: #E0F2F1; color: #00695C; }
+  .n-load { background: #E3F2FD; color: #0D47A1; }
+
+  .verdict { margin: 8px 14px 0; border-radius: 12px; overflow: hidden; border: 2px solid #66BB6A; }
+  .v-ok, .v-bad {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 9px 12px; font-size: 13.5px;
+  }
+  .v-ok  { background: #E8F5E9; color: #1B5E20; }
+  .v-bad { background: #FFEBEE; color: #B71C1C; border-top: 2px dashed #EF9A9A; }
+  .verdict b { font-variant-numeric: tabular-nums; font-size: 16px; }
+  .v-gap {
+    background: #FFF8E1; color: #E65100; font-size: 12.5px;
+    padding: 7px 12px; text-align: center; font-weight: 700;
+  }
+
+  .dialogue {
+    margin: 10px 14px 0; padding: 11px 13px; border-radius: 12px;
+    font-size: 13.5px; line-height: 1.65; font-weight: 500;
+  }
+  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
+  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
+  .puffer { background: #FFEBEE; border: 2px solid #C62828; color: #B71C1C; }
+
+  .hint {
+    font-size: 11.5px; color: #90A4AE; text-align: center; padding: 9px 16px 0; line-height: 1.55;
+  }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 13px 12px 16px; }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">
+    ⚡ 兩個供電能力
+    <small>2025-07-17　台電十分鐘資料　拉拉看它們怎麼變</small>
+  </div>
+
+  <div class="chart">
+    <svg viewBox="0 0 420 190" role="img" aria-label="一天的供電能力與用電量曲線">
+      <g id="grid"></g>
+      <path id="pCap" fill="none" stroke="#00897B" stroke-width="2.4" stroke-linejoin="round"/>
+      <path id="pLoad" fill="none" stroke="#1976D2" stroke-width="2.4" stroke-linejoin="round"/>
+      <line id="lFix" stroke="#8E24AA" stroke-width="2.4" stroke-dasharray="6 4"/>
+      <line id="cursor" stroke="#FF6F00" stroke-width="2"/>
+      <circle id="dCap" r="4.5" fill="#00897B" stroke="#fff" stroke-width="2"/>
+      <circle id="dLoad" r="4.5" fill="#1976D2" stroke="#fff" stroke-width="2"/>
+      <g id="xlab"></g>
+    </svg>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:#8E24AA"></i>今日最大供電能力</span>
+    <span><i style="background:#00897B"></i>供電能力（註1括號）</span>
+    <span><i style="background:#1976D2"></i>目前用電量</span>
+  </div>
+
+  <div class="slider-row">
+    <div class="slider-head">
+      <span class="lbl">時間</span>
+      <span class="val-badge" id="tv">14:00</span>
+    </div>
+    <input type="range" id="sl" min="0" max="143" step="1" value="84">
+  </div>
+
+  <div class="nums">
+    <div class="nrow n-fix">今日最大供電能力<b id="vFix">—</b></div>
+    <div class="nrow n-now">供電能力（註1括號）<b id="vNow">—</b></div>
+    <div class="nrow n-load">目前用電量<b id="vLoad">—</b></div>
+  </div>
+
+  <div class="verdict">
+    <div class="v-ok">✅ 現在真的還剩<b id="vOk">—</b></div>
+    <div class="v-bad">❌ 用最大供電能力減<b id="vBad">—</b></div>
+    <div class="v-gap" id="vGap">—</div>
+  </div>
+
+  <div class="dialogue turtle" id="tBox">🐢 海龜助教：把拉桿從早上拉到晚上看看。</div>
+  <div class="dialogue ray" id="rBox">⚡ 電鱝老師：紫色那條虛線，一整天都沒動過。</div>
+
+  <div class="hint">單位：萬瓩。紫色是台電當天預估的，配「預估最高用電」用；<br>綠色才是每 10 分鐘跟著變的即時值。</div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+
+<script>
+var T=["00:00","00:10","00:20","00:30","00:40","00:50","01:00","01:10","01:20","01:30","01:40","01:50","02:00","02:10","02:20","02:30","02:40","02:50","03:00","03:10","03:20","03:30","03:40","03:50","04:00","04:10","04:20","04:30","04:40","04:50","05:00","05:10","05:20","05:30","05:40","05:50","06:00","06:10","06:20","06:30","06:40","06:50","07:00","07:10","07:20","07:30","07:40","07:50","08:00","08:10","08:20","08:30","08:40","08:50","09:00","09:10","09:20","09:30","09:40","09:50","10:00","10:10","10:20","10:30","10:40","10:50","11:00","11:10","11:20","11:30","11:40","11:50","12:00","12:10","12:20","12:30","12:40","12:50","13:00","13:10","13:20","13:30","13:40","13:50","14:00","14:10","14:20","14:30","14:40","14:50","15:00","15:10","15:20","15:30","15:40","15:50","16:00","16:10","16:20","16:30","16:40","16:50","17:00","17:10","17:20","17:30","17:40","17:50","18:00","18:10","18:20","18:30","18:40","18:50","19:00","19:10","19:20","19:30","19:40","19:50","20:00","20:10","20:20","20:30","20:40","20:50","21:00","21:10","21:20","21:30","21:40","21:50","22:00","22:10","22:20","22:30","22:40","22:50","23:00","23:10","23:20","23:30","23:40","23:50"];
+var L=[3107.8,3139.6,3133.2,3107.3,3073.8,3053.9,3040.3,3044.2,3012,2979,2961.8,2956.2,2946,2924.4,2914.7,2891.4,2881.2,2879.9,2861.6,2831.8,2817.5,2818.1,2814.2,2808.1,2809.4,2799,2787.7,2757,2775.2,2762.1,2751.8,2762.7,2747.6,2731,2757.8,2726.1,2748.7,2741.6,2766.4,2778.4,2794,2812,2867.2,2882,2934.7,2965.8,3019,3113.4,3217.5,3359.2,3438.4,3475.3,3536.4,3556.9,3571.8,3631.9,3641.3,3644.4,3687.7,3706.2,3724.7,3723.5,3775.3,3798.9,3815.3,3828.5,3880.6,3892.1,3914.8,3912.4,3931.8,3960.7,3883.9,3820.8,3804,3819.2,3819.3,3839.5,3860.7,3947.7,3977.3,4008.7,3984.3,3978,3980.2,4003.2,3970.9,3966.1,3950,3970.9,3959.4,3937.5,3890.3,3874.9,3882,3866.4,3854.8,3820.9,3806.1,3797.9,3797.2,3773.2,3727.8,3676.2,3660.2,3654.2,3659.7,3665.5,3661.4,3656.1,3651.2,3649.7,3648,3671.8,3656,3675.3,3640.1,3638.9,3617.8,3613.9,3602.2,3582,3580.7,3562.8,3555.8,3546.1,3525.6,3495.5,3483.4,3475.1,3470.8,3453.8,3416.9,3440,3433.4,3414.5,3376.1,3366.1,3309.5,3270.8,3264.3,3245.4,3199.8,3172.6];
+var C=[3959.6,3960.7,3956.5,3956.7,3956,3959.3,3962.8,3960.8,3956.1,3954.5,3949.1,3946.2,3944,3936.3,3932.4,3928.4,3925.8,3920.4,3915.5,3913.6,3912.2,3909.6,3904.5,3904.3,3902.5,3902.6,3903.9,3903.6,3903.1,3905.4,3904.7,3902.9,3901.9,3900.7,3904.4,3916.4,3948.9,3962.6,3985.9,4009,4033.9,4063.9,4100.3,4138.1,4181.2,4222.9,4266.1,4300.5,4339,4375.8,4410.9,4438.5,4471.2,4494.4,4512.4,4539.7,4556,4579.4,4606.1,4626.3,4636.8,4648.7,4658.9,4673.1,4688.9,4698.7,4712.2,4712.3,4722.5,4737.8,4747.8,4768.4,4754.4,4750.5,4750.4,4763.8,4760.4,4760.8,4759.7,4759.1,4749.8,4739.9,4697.4,4683.1,4662.9,4638.5,4612.2,4577.5,4539.4,4513.8,4476.6,4429.9,4394.6,4371.5,4361.6,4348.4,4303.7,4274.7,4255.8,4247.1,4237.1,4211.3,4184.3,4146,4119,4092.1,4076.4,4043.5,4014.9,3994.6,3968.3,3955.8,3922.8,3909.5,3906.3,3903.9,3901.6,3901.6,3901,3900.8,3900.6,3900.5,3900.4,3900.4,3900.2,3900.5,3900.2,3900.1,3900,3900.2,3900.5,3900.4,3900.5,3904.5,3907,3908,3907.1,3911.9,3908.1,3905.8,3905.5,3905,3903,3901.3];
+var FIX=4538.0, LO=115;
+
+var W=420,H=190,PL=44,PR=8,PT=10,PB=20;
+var lo=Math.min(Math.min.apply(null,L),Math.min.apply(null,C),FIX)-120;
+var hi=Math.max(Math.max.apply(null,C),FIX)+90;
+function X(i){ return PL+(W-PL-PR)*i/143; }
+function Y(v){ return PT+(H-PT-PB)*(1-(v-lo)/(hi-lo)); }
+function path(A){ var s=''; for(var i=0;i<A.length;i++) s+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(A[i]).toFixed(1); return s; }
+
+document.getElementById('pCap').setAttribute('d',path(C));
+document.getElementById('pLoad').setAttribute('d',path(L));
+var lf=document.getElementById('lFix');
+lf.setAttribute('x1',PL); lf.setAttribute('x2',W-PR);
+lf.setAttribute('y1',Y(FIX)); lf.setAttribute('y2',Y(FIX));
+
+var grid=document.getElementById('grid'),xl=document.getElementById('xlab'),NS='http://www.w3.org/2000/svg';
+for(var v=Math.ceil(lo/500)*500; v<hi; v+=500){
+  var g=document.createElementNS(NS,'line');
+  g.setAttribute('x1',PL); g.setAttribute('x2',W-PR);
+  g.setAttribute('y1',Y(v)); g.setAttribute('y2',Y(v));
+  g.setAttribute('stroke','#ECEFF1'); g.setAttribute('stroke-width','1'); grid.appendChild(g);
+  var tx=document.createElementNS(NS,'text');
+  tx.setAttribute('x',PL-5); tx.setAttribute('y',Y(v)+3.5);
+  tx.setAttribute('text-anchor','end'); tx.setAttribute('font-size','9'); tx.setAttribute('fill','#90A4AE');
+  tx.textContent=v.toLocaleString(); grid.appendChild(tx);
+}
+[0,36,72,108,143].forEach(function(i){
+  var tx=document.createElementNS(NS,'text');
+  tx.setAttribute('x',X(i)); tx.setAttribute('y',H-6);
+  tx.setAttribute('text-anchor','middle'); tx.setAttribute('font-size','9'); tx.setAttribute('fill','#90A4AE');
+  tx.textContent=T[i]; xl.appendChild(tx);
+});
+
+var sl=document.getElementById('sl'), cur=document.getElementById('cursor');
+var dC=document.getElementById('dCap'), dL=document.getElementById('dLoad');
+function n(x){ return x.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}); }
+function say(w,t){ document.getElementById(w).textContent=(w==='tBox'?'🐢 海龜助教：':'⚡ 電鱝老師：')+t; }
+
+function draw(){
+  var i=+sl.value, load=L[i], cap=C[i];
+  var ok=cap-load, bad=FIX-load;
+  document.getElementById('tv').textContent=T[i];
+  document.getElementById('vFix').textContent=n(FIX);
+  document.getElementById('vNow').textContent=n(cap);
+  document.getElementById('vLoad').textContent=n(load);
+  document.getElementById('vOk').textContent=n(ok);
+  document.getElementById('vBad').textContent=n(bad);
+  var gap=bad-ok;
+  document.getElementById('vGap').textContent =
+    (Math.abs(gap)<0.05) ? '這一刻剛好一樣'
+    : (gap>0 ? '差 '+n(gap)+'　把情況想得太寬鬆了'
+             : '差 '+n(-gap)+'　反而低估了');
+
+  cur.setAttribute('x1',X(i)); cur.setAttribute('x2',X(i));
+  cur.setAttribute('y1',PT); cur.setAttribute('y2',H-PB);
+  dC.setAttribute('cx',X(i)); dC.setAttribute('cy',Y(cap));
+  dL.setAttribute('cx',X(i)); dL.setAttribute('cy',Y(load));
+
+  if(i===LO){
+    say('tBox','這是全天最緊的一刻，只剩 '+n(ok)+'！');
+    say('rBox','可是用紫色那條算，會以為還有 '+n(bad)+'——差了快四倍。');
+  } else if(cap>FIX){
+    say('tBox','咦？綠色跑到紫色上面了。');
+    say('rBox','中午太陽最強，即時供電能力反而比預估的還高。兩個數字連大小都會翻。');
+  } else if(ok<400){
+    say('tBox','餘裕只剩 '+n(ok)+'，有點緊。');
+    say('rBox','太陽下山了，綠色那條跟著掉下來——紫色那條可不會。');
+  } else {
+    say('tBox','現在還剩 '+n(ok)+'。');
+    say('rBox','紫色那條一整天都是 '+n(FIX)+'，動都沒動。');
+  }
+}
+sl.addEventListener('input',draw);
+draw();
+
+var y=new Date().getFullYear();
+document.getElementById('year').textContent=(y>2026)?('2026–'+y):'2026';
+</script>
+</body>
+</html>
