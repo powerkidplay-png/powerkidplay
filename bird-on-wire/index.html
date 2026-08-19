@@ -5,16 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!--
   ⚡ 電力爸爸的生活筆記 - 互動工具
-  工具名稱：這樣做安全嗎？
-  開發日期：2026-08-12
+  工具名稱：接得起來嗎？
+  開發日期：2026-08-19
   作者：電力爸爸
   網站：https://powerkidplay.blogspot.com/
-  © 2026 電力爸爸的生活筆記。保留所有權利。
-  ❌ 禁止複製程式碼至其他網站
-  ✅ 允許透過本站連結分享
-  授權洽詢：powerkidplay@gmail.com
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，須事先來信取得同意：
+  powerkidplay@gmail.com
 -->
-<title>這樣做安全嗎？</title>
+<title>接得起來嗎？</title>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -39,171 +40,259 @@
     color: #fff; font-size: 19px; font-weight: 700;
     text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
   }
-  .control-area { padding: 18px 18px 4px; }
-  .slider-row { margin-bottom: 16px; }
-  .slider-head {
-    display: flex; justify-content: space-between;
-    align-items: center; margin-bottom: 9px;
+  .hint {
+    font-size: 13px; padding: 11px 18px 4px;
+    color: #666; text-align: center; line-height: 1.7;
   }
-  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
-  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 2px; }
-  .val-badge {
-    font-size: 17px; font-weight: 800; padding: 3px 13px;
-    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+  .stage { position: relative; height: 285px; margin: 4px 12px 0; touch-action: none; }
+  .wire {
+    position: absolute; left: 8px; right: 8px; height: 5px;
+    background: #4a4a4a; border-radius: 3px;
   }
-  .val-a { background: #1565C0; }
-  .val-b { background: #18A99C; }
-  .val-c { background: #EF6C00; }
-  input[type=range] {
-    -webkit-appearance: none; appearance: none;
-    width: 100%; height: 10px; border-radius: 6px;
-    background: #DCE7F2; outline: none;
+  .wire.w1 { top: 62px; }
+  .wire.w2 { top: 112px; }
+  .wire .flow {
+    position: absolute; inset: 0; border-radius: 3px;
+    background: linear-gradient(90deg,#FFD54F,#FF7043,#FFD54F);
+    background-size: 200% 100%; opacity: 0;
+    transition: opacity .18s;
   }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 30px; height: 30px; border-radius: 50%;
-    background: #1565C0; border: 4px solid #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  .wire.live .flow { opacity: 1; animation: run .7s linear infinite; }
+  @keyframes run { to { background-position: -200% 0; } }
+  .pole {
+    position: absolute; left: 12%; top: 38px; width: 15px; height: 202px;
+    margin-left: -7px; background: #8D6E63; border-radius: 3px;
   }
-  input[type=range]::-moz-range-thumb {
-    width: 30px; height: 30px; border-radius: 50%;
-    background: #1565C0; border: 4px solid #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  .ground {
+    position: absolute; left: 0; right: 0; top: 240px; height: 45px;
+    background: linear-gradient(#A5D6A7,#81C784); border-radius: 0 0 10px 10px;
   }
-  input.tealThumb::-webkit-slider-thumb { background: #18A99C; }
-  input.tealThumb::-moz-range-thumb { background: #18A99C; }
-  input.orangeThumb::-webkit-slider-thumb { background: #EF6C00; }
-  input.orangeThumb::-moz-range-thumb { background: #EF6C00; }
-
-  .result-area {
-    margin: 4px 18px 16px;
-    background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
-    border-radius: 14px; padding: 15px 14px; text-align: center;
+  /* 位置框與電線都用 px，兩者才對得齊；margin 讓框以中心點對位 */
+  .slot {
+    position: absolute; width: 66px; height: 40px;
+    margin-left: -33px; margin-top: -20px; z-index: 3;
+    border: 2px dashed #90A4AE; border-radius: 10px;
+    background: rgba(255,255,255,.55);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #607D8B; line-height: 1.3; text-align: center;
+    cursor: pointer; transition: border-color .15s, background .15s;
   }
-  .result-label { font-size: 14px; color: #555; margin-bottom: 2px; }
-  .result-number { font-size: 19px; font-weight: 700; color: #1565C0; }
-  .big {
-    font-size: 42px; font-weight: 900; color: #0D47A1;
-    line-height: 1.05; display: inline-block; min-width: 60px;
+  .slot:hover, .slot.hot { border-color: #1565C0; background: #E3F2FD; }
+  .slot.on { border-style: solid; border-color: #1565C0; background: #E3F2FD; }
+  .bird {
+    position: absolute; width: 44px; height: 44px; margin-left: -22px; margin-top: -38px;
+    font-size: 34px; line-height: 44px; text-align: center;
+    cursor: grab; user-select: none; z-index: 5;
+    transition: left .22s cubic-bezier(.34,1.3,.64,1), top .22s cubic-bezier(.34,1.3,.64,1);
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
   }
-  .formula {
-    margin-top: 10px; font-size: 14px; color: #00695C;
-    background: #ffffff; border-radius: 10px; padding: 8px 6px;
-    font-weight: 700; border: 1px dashed #80CBC4;
+  .bird.dragging { cursor: grabbing; transition: none; }
+  .bird.zap { animation: zap .4s ease-in-out 2; }
+  @keyframes zap {
+    0%,100% { transform: translateX(0) }
+    25% { transform: translateX(-5px) rotate(-9deg) }
+    75% { transform: translateX(5px) rotate(9deg) }
   }
-  .stage { padding: 0 18px 4px; }
-  .note { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
-  .note b { color: #00897B; font-size: 15px; }
-  .btn {
-    display: block; width: 100%; padding: 12px; margin-bottom: 9px;
-    font-family: inherit; font-size: 15px; font-weight: 700;
-    border: 2px solid #BBDEFB; border-radius: 12px;
-    background: #F5FAFF; color: #0D47A1; cursor: pointer;
-    text-align: left; transition: all .15s ease;
+  .verdict {
+    margin: 10px 14px 0; border-radius: 12px; padding: 11px 14px;
+    font-size: 15px; font-weight: 700; text-align: center;
+    background: #ECEFF1; color: #546E7A; transition: background .2s, color .2s;
   }
-  .btn:hover { border-color: #1976D2; background: #E3F2FD; }
-  .btn.ok { border-color: #43A047; background: #E8F5E9; color: #1B5E20; }
-  .btn.no { border-color: #E53935; background: #FFEBEE; color: #B71C1C; }
-  .btn:disabled { cursor: default; opacity: .85; }
+  .verdict.safe { background: #E8F5E9; color: #2E7D32; }
+  .verdict.live { background: #FFEBEE; color: #C62828; }
   .dialogue {
-    margin: 12px 18px 0; padding: 11px 14px;
-    border-radius: 12px; font-size: 14px; line-height: 1.6; font-weight: 500;
+    display: flex; gap: 9px; align-items: flex-start;
+    margin: 11px 14px 0; font-size: 14px; line-height: 1.75;
   }
-  .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
-  .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
-  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 15px 12px 17px; }
-  .scene {
-    background: #F5FAFF; border: 2px dashed #90CAF9; border-radius: 12px;
-    padding: 16px 14px; font-size: 15px; line-height: 1.65;
-    color: #0D47A1; font-weight: 600; margin-bottom: 12px; min-height: 74px;
+  .dialogue .who { font-size: 26px; flex: 0 0 auto; }
+  .dialogue .say {
+    background: #F1F5F9; border-radius: 12px; padding: 9px 12px;
+    color: #37474F; flex: 1 1 auto;
   }
+  .progress {
+    margin: 13px 14px 0; padding: 10px 12px; border-radius: 10px;
+    background: #FFF8E1; font-size: 13px; color: #6D4C41; line-height: 1.8;
+  }
+  .progress b { color: #EF6C00; }
+  .dots { letter-spacing: 3px; font-size: 15px; }
+  .foot {
+    padding: 12px 16px 16px; font-size: 12px;
+    color: #90A4AE; text-align: center; line-height: 1.7;
+  }
+  .foot .warn { color: #C62828; font-weight: 700; }
 </style>
 </head>
 <body>
 <div class="tool-wrap">
-  <div class="title-bar">🐦 這樣做安全嗎？</div>
+  <div class="title-bar">接得起來嗎？</div>
 
-  <div class="stage">
-    <div class="note">第 <b id="qn">1</b> / 6 題　｜　答對 <b id="okn">0</b> 題</div>
-    <div class="scene" id="scene">小鳥兩隻腳站在同一條電線上。</div>
-    <button class="btn" id="yes">✅ 安全</button>
-    <button class="btn" id="no">⛔ 危險</button>
+  <div class="hint">
+    電要<b>繞完一圈</b>才會流動。<br>
+    把小鳥拖到不同的位置，看看電流會不會亮起來。
   </div>
-  <div class="result-area">
-    <div class="result-label" id="fbLbl">選一個看看</div>
-    <div class="formula" id="fb">這一題你怎麼想？</div>
+
+  <div class="stage" id="stage">
+    <div class="wire w1" id="w1"><div class="flow"></div></div>
+    <div class="wire w2" id="w2"><div class="flow"></div></div>
+    <div class="pole"></div>
+    <div class="ground"></div>
+    <div class="bird" id="bird">🐦</div>
   </div>
-  <div class="stage"><button class="btn" id="next" style="display:none">➡️ 下一題</button></div>
-  <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：看清楚情境再選喔。</div>
-  <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：電這件事，不確定就不要碰——這是最重要的一句。</div>
-  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+
+  <div class="verdict" id="verdict">把小鳥拖到一個位置試試看</div>
+
+  <div class="dialogue">
+    <div class="who" id="who">🐡</div>
+    <div class="say" id="say">五個位置都試一次，你就會知道小鳥為什麼沒事。</div>
+  </div>
+
+  <div class="progress">
+    試過的位置　<span class="dots" id="dots">○○○○○</span>　<b id="done">0</b> / 5<br>
+    <span id="tip">其中有 <b>3 個</b> 會讓電流繞成一圈。</span>
+  </div>
+
+  <div class="foot">
+    <span class="warn">⚠️ 真的電線一條都不能碰。</span><br>
+    看到電線掉下來，離遠一點並打 1911。<br>
+    小工具由電力爸爸開發，資料與說明見文章。
+  </div>
 </div>
+
 <script>
-var turtleBox = document.getElementById('turtleBox');
-var rayBox    = document.getElementById('rayBox');
-function say(who, txt) {
-  if (who === 't') turtleBox.textContent = '🐢 海龜助教：' + txt;
-  else rayBox.textContent = '⚡ 電鱝老師：' + txt;
-}
+(function () {
+  "use strict";
 
-// ⚠️ 每一則的說法都對齊台電公開的用電安全宣導
-var Q = [
- {s:'小鳥兩隻腳站在同一條電線上。', a:1,
-  w:'台電也是這樣說的：站在同一條線上通常不會觸電，因為電沒有「繞一圈」的路。'},
- {s:'一隻大鳥張開翅膀，翅膀尖端碰到了旁邊另一條線。', a:0,
-  w:'危險。翅膀或尾巴碰到電位不同的線路或設備，就可能觸電——這是真的會發生的意外。'},
- {s:'風箏卡在電線上了，你拿一根長長的竹竿想把它勾下來。', a:0,
-  w:'非常危險。台電宣導特別提醒：釣竿、長竿子都是電的良導體。要打 1911 請專業人員處理。'},
- {s:'你看到有人在電桿上工作，想走近一點看清楚。', a:0,
-  w:'不要靠近。也不要攀爬、不要碰工具或設備、不要進入圍起來的施工範圍。'},
- {s:'路上有一條電線掉在地上，看起來沒有火花。', a:0,
-  w:'絕對不要碰。台電宣導寫得很清楚：發現斷落電線切勿碰觸，要立刻通知台電。'},
- {s:'在空曠的公園放風箏，離高壓電線很遠很遠。', a:1,
-  w:'這樣就對了。台電的宣導是「放風箏時請遠離高壓電線」——不是不能放，是要選對地方。'}
-];
-var i = 0, ok = 0, answered = false;
-var scene = document.getElementById('scene'), qn = document.getElementById('qn');
-var okn = document.getElementById('okn'), fb = document.getElementById('fb');
-var fbLbl = document.getElementById('fbLbl'), nx = document.getElementById('next');
-var by = document.getElementById('yes'), bn = document.getElementById('no');
-function load() {
-  answered = false;
-  scene.textContent = Q[i].s;
-  qn.textContent = i + 1; okn.textContent = ok;
-  by.className = 'btn'; bn.className = 'btn';
-  by.disabled = false; bn.disabled = false;
-  nx.style.display = 'none';
-  fbLbl.textContent = '選一個看看'; fb.textContent = '這一題你怎麼想？';
-  say('t', '看清楚情境再選喔。');
-}
-function ans(v) {
-  if (answered) return;
-  answered = true;
-  by.disabled = true; bn.disabled = true;
-  var right = (v === Q[i].a);
-  if (right) ok++;
-  (v ? by : bn).classList.add(right ? 'ok' : 'no');
-  (Q[i].a ? by : bn).classList.add('ok');
-  okn.textContent = ok;
-  fbLbl.textContent = right ? '✅ 答對了' : '❌ 再想一次';
-  fb.textContent = Q[i].a ? '這樣是安全的' : '這樣有危險';
-  say('r', Q[i].w);
-  if (i < Q.length - 1) { nx.style.display = 'block'; nx.textContent = '➡️ 下一題'; }
-  else {
-    nx.style.display = 'block'; nx.textContent = '🔄 再玩一次';
-    say('t', '六題結束，你答對 ' + ok + ' 題。記住最重要的一句：不確定就不要碰，打 1911。');
+  // 五個位置。live = 電流會不會繞成一圈
+  // 這是本工具的全部知識：電要有「出去」和「回來」兩條路才會流動。
+  // x 是 stage 寬度的百分比，y 是像素（跟電線同一套座標）
+  var SPOTS = [
+    { id: "same", x: 46, y: 62, live: false,
+      label: "兩腳都在<br>同一條線",
+      say: "兩隻腳站在同一條線上，電沒有第二條路可以走，所以不會流過牠。這就是小鳥沒事的原因。",
+      who: "🐡" },
+    { id: "cross", x: 80, y: 87, live: true,
+      label: "一腳一條線<br>跨兩條",
+      say: "圈圈接起來了！電從一條線經過小鳥流到另一條線。這樣就會有電流通過牠。",
+      who: "🐡" },
+    { id: "pole", x: 26, y: 112, live: true,
+      label: "一腳線上<br>一腳碰電桿",
+      say: "電桿是接地的。碰到線又碰到電桿，電就從小鳥身上流進地裡，一樣繞成一圈。",
+      who: "🐡" },
+    { id: "ground", x: 80, y: 186, live: true,
+      label: "碰到線<br>又碰到地",
+      say: "只要一邊碰線、另一邊碰到地，圈圈就接起來了。人踩在地上碰到電線，就是這一種。",
+      who: "🐡" },
+    { id: "air", x: 46, y: 186, live: false,
+      label: "只在空中<br>沒碰到線",
+      say: "什麼都沒碰到，當然不會有電流。電不會自己跳出來追牠。",
+      who: "🐢" }
+  ];
+
+  var stage = document.getElementById("stage");
+  var bird = document.getElementById("bird");
+  var w1 = document.getElementById("w1");
+  var w2 = document.getElementById("w2");
+  var verdict = document.getElementById("verdict");
+  var say = document.getElementById("say");
+  var who = document.getElementById("who");
+  var dots = document.getElementById("dots");
+  var doneEl = document.getElementById("done");
+  var tip = document.getElementById("tip");
+
+  var tried = {};
+  var slots = [];
+  var home = { x: 89, y: 20 };      // 待命區，右上角，不壓到任何一個框
+
+  SPOTS.forEach(function (s, i) {
+    var el = document.createElement("div");
+    el.className = "slot";
+    el.style.left = s.x + "%";
+    el.style.top = s.y + "px";
+    el.innerHTML = s.label;
+    el.addEventListener("click", function () { land(i); });
+    stage.appendChild(el);
+    slots.push(el);
+  });
+
+  function place(x, y) {
+    bird.style.left = x + "%";
+    bird.style.top = y + "px";
   }
-}
-by.addEventListener('click', function () { ans(1); });
-bn.addEventListener('click', function () { ans(0); });
-nx.addEventListener('click', function () {
-  if (i < Q.length - 1) i++; else { i = 0; ok = 0; }
-  load();
-});
-load();
+  place(home.x, home.y);
 
-var y = new Date().getFullYear();
-document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+  function land(i) {
+    var s = SPOTS[i];
+    place(s.x, s.y);
+    slots.forEach(function (el, k) { el.classList.toggle("on", k === i); });
+
+    w1.classList.toggle("live", s.live);
+    w2.classList.toggle("live", s.live);
+    bird.classList.remove("zap");
+    if (s.live) { void bird.offsetWidth; bird.classList.add("zap"); }
+
+    verdict.className = "verdict " + (s.live ? "live" : "safe");
+    verdict.textContent = s.live ? "⚡ 圈圈接起來了，有電流通過"
+                                 : "✅ 圈圈沒接起來，沒有電流";
+    who.textContent = s.who;
+    say.textContent = s.say;
+
+    if (!tried[s.id]) {
+      tried[s.id] = true;
+      var n = Object.keys(tried).length;
+      doneEl.textContent = n;
+      dots.textContent = "●".repeat(n) + "○".repeat(5 - n);
+      if (n === 5) {
+        tip.innerHTML = "<b>五個都試過了。</b>" +
+          "只要電有辦法從小鳥身上「進去再出來」，牠就會觸電；" +
+          "兩腳同一條線做不到這件事。";
+      }
+    }
+  }
+
+  // 拖曳：放開時吸到最近的位置
+  var dragging = false;
+  function pt(e) { return e.touches ? e.touches[0] : e; }
+
+  bird.addEventListener("pointerdown", function (e) {
+    dragging = true;
+    bird.classList.add("dragging");
+    bird.setPointerCapture(e.pointerId);
+  });
+
+  bird.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    var r = stage.getBoundingClientRect();
+    var p = pt(e);
+    var x = (p.clientX - r.left) / r.width * 100;
+    var y = p.clientY - r.top;
+    place(Math.max(6, Math.min(94, x)), Math.max(14, Math.min(r.height - 14, y)));
+    var near = nearest();
+    slots.forEach(function (el, k) { el.classList.toggle("hot", k === near); });
+  });
+
+  bird.addEventListener("pointerup", function () {
+    if (!dragging) return;
+    dragging = false;
+    bird.classList.remove("dragging");
+    slots.forEach(function (el) { el.classList.remove("hot"); });
+    land(nearest());
+  });
+
+  function nearest() {
+    var bx = parseFloat(bird.style.left);
+    var by = parseFloat(bird.style.top);
+    var best = 0, bd = Infinity;
+    var w = stage.getBoundingClientRect().width || 1;
+    SPOTS.forEach(function (s, i) {
+      // x 是百分比、y 是像素，先把 x 換算成像素才能比距離
+      var dx = (s.x - bx) / 100 * w;
+      var dy = s.y - by;
+      var d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = i; }
+    });
+    return best;
+  }
+})();
 </script>
 </body>
 </html>
