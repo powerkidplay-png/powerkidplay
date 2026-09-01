@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：儲能的一天：什麼時候存，什麼時候放？
+  開發日期：2026-08-28
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，須事先來信取得同意：
+  powerkidplay@gmail.com
+-->
+<title>儲能的一天：什麼時候存，什麼時候放？</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#00695C,#00897B);
+    color: #fff; font-size: 18px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 6px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 4px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800; padding: 3px 13px;
+    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+    background: #00897B;
+  }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #00897B; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #00897B; border: 4px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.30); cursor: pointer;
+  }
+
+  .stage { padding: 4px 18px 2px; }
+  .axis {
+    display: flex; justify-content: space-between;
+    font-size: 12px; font-weight: 700; margin-bottom: 6px;
+  }
+  .axis .l { color: #C62828; }
+  .axis .r { color: #2E7D32; }
+  .axis .m { color: #aaa; font-weight: 400; }
+
+  .row { margin-bottom: 14px; }
+  .row-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 13px; font-weight: 700; color: #444; margin-bottom: 3px;
+  }
+  .row-head .mw { font-variant-numeric: tabular-nums; font-weight: 800; }
+  .track {
+    position: relative; height: 30px; background: #ECF2F7;
+    border-radius: 7px; overflow: hidden;
+  }
+  .zero {
+    position: absolute; left: 50%; top: 0; bottom: 0;
+    width: 2px; background: #B0BEC5; z-index: 3;
+  }
+  .bar {
+    position: absolute; top: 0; bottom: 0;
+    border-radius: 5px; transition: left .18s ease, width .18s ease, background .18s;
+  }
+  .sun-wrap { margin: 2px 0 14px; }
+  .sun-track {
+    height: 16px; background: #ECF2F7; border-radius: 5px; overflow: hidden;
+  }
+  .sun-fill {
+    height: 100%; background: #FDD835; border-radius: 5px;
+    transition: width .18s ease;
+  }
+
+  .result-area {
+    margin: 2px 18px 14px;
+    background: linear-gradient(135deg,#E0F2F1,#E3F2FD);
+    border-radius: 14px; padding: 13px 14px; text-align: center;
+  }
+  .result-label { font-size: 13px; color: #555; margin-bottom: 3px; }
+  .result-number { font-size: 20px; font-weight: 800; color: #00695C; }
+
+  .dialogue {
+    margin: 0 18px 9px; padding: 10px 13px; border-radius: 12px;
+    font-size: 13px; line-height: 1.65;
+  }
+  .turtle { background: #E8F5E9; color: #2E7D32; }
+  .ray { background: #E3F2FD; color: #1565C0; }
+  .src {
+    font-size: 11px; color: #9aa0a6; line-height: 1.7;
+    text-align: center; padding: 4px 16px 0;
+  }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 12px 12px 16px; }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">🔋 儲能的一天：什麼時候存，什麼時候放？</div>
+
+  <div class="control-area">
+    <div class="slider-head">
+      <span class="lbl">現在幾點<small>2025/7/2 這一天</small></span>
+      <span class="val-badge" id="hVal">03:00</span>
+    </div>
+    <input type="range" id="hSlider" min="0" max="143" step="1" value="18">
+  </div>
+
+  <div class="stage">
+    <div class="axis">
+      <span class="l">← 充電（跟電網拿電）</span>
+      <span class="m">0</span>
+      <span class="r">放電（把電放回去）→</span>
+    </div>
+
+    <div class="row">
+      <div class="row-head"><span>🐙 抽蓄水力（水池）</span><span class="mw" id="mwPump"></span></div>
+      <div class="track"><div class="bar" id="barPump"></div><div class="zero"></div></div>
+    </div>
+
+    <div class="row">
+      <div class="row-head"><span>🐍 電池</span><span class="mw" id="mwBat"></span></div>
+      <div class="track"><div class="bar" id="barBat"></div><div class="zero"></div></div>
+    </div>
+
+    <div class="sun-wrap">
+      <div class="row-head"><span>☀️ 太陽光電（參考）</span><span class="mw" id="mwSun"></span></div>
+      <div class="sun-track"><div class="sun-fill" id="barSun"></div></div>
+    </div>
+  </div>
+
+  <div class="result-area">
+    <div class="result-label">這個時間，兩個儲能在做什麼？</div>
+    <div class="result-number" id="ans"></div>
+  </div>
+
+  <div class="dialogue turtle" id="turtleBox"></div>
+  <div class="dialogue ray" id="rayBox"></div>
+  <div class="src">
+    資料：台灣電力公司十分鐘資料，2025 年 7 月 2 日，每 10 分鐘一筆共 144 筆。<br>
+    已排除「小計」彙總列；抽蓄水力與電池以子分類分開計算。
+  </div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+
+<script>
+var D = {"日期":"2025-07-02","來源":"台灣電力公司十分鐘資料（已排除「小計」彙總列，以子分類分開計算）","尺度":2300,"時間":["00:00","00:10","00:20","00:30","00:40","00:50","01:00","01:10","01:20","01:30","01:40","01:50","02:00","02:10","02:20","02:30","02:40","02:50","03:00","03:10","03:20","03:30","03:40","03:50","04:00","04:10","04:20","04:30","04:40","04:50","05:00","05:10","05:20","05:30","05:40","05:50","06:00","06:10","06:20","06:30","06:40","06:50","07:00","07:10","07:20","07:30","07:40","07:50","08:00","08:10","08:20","08:30","08:40","08:50","09:00","09:10","09:20","09:30","09:40","09:50","10:00","10:10","10:20","10:30","10:40","10:50","11:00","11:10","11:20","11:30","11:40","11:50","12:00","12:10","12:20","12:30","12:40","12:50","13:00","13:10","13:20","13:30","13:40","13:50","14:00","14:10","14:20","14:30","14:40","14:50","15:00","15:10","15:20","15:30","15:40","15:50","16:00","16:10","16:20","16:30","16:40","16:50","17:00","17:10","17:20","17:30","17:40","17:50","18:00","18:10","18:20","18:30","18:40","18:50","19:00","19:10","19:20","19:30","19:40","19:50","20:00","20:10","20:20","20:30","20:40","20:50","21:00","21:10","21:20","21:30","21:40","21:50","22:00","22:10","22:20","22:30","22:40","22:50","23:00","23:10","23:20","23:30","23:40","23:50"],"抽蓄":[774,895,967,908,923,758,469,333,138,-65,-247,-247,-248,-510,-514,-746,-749,-747,-803,-1013,-1275,-1291,-1533,-1772,-1771,-1770,-1769,-1765,-1760,-1998,-2006,-2009,-1998,-1994,-2002,-2239,-2226,-2227,-2227,-2229,-2231,-2224,-2220,-2216,-2206,-2204,-2173,-1599,-737,-94,280,490,609,567,522,566,467,466,461,324,318,312,325,316,323,409,319,328,321,315,221,-39,-239,-731,-976,-978,-970,-973,-728,-94,136,310,325,330,323,335,319,332,326,384,320,317,337,320,318,322,314,318,370,343,372,466,466,467,474,563,632,754,758,766,962,943,1063,1138,1161,1352,1395,1269,1204,1194,1106,1343,1410,1377,1292,1189,1117,1079,1084,1080,1072,1073,1076,1375,1467,1310,1053,1242,1070,931,922,774,804,640],"電池":[-42,24,-1,11,-12,-16,-17,-24,-12,-8,-6,-11,-15,-18,-20,-29,-26,-7,-49,-19,-45,-8,-15,6,0,-242,-236,-209,-206,-192,-192,-291,-286,-292,-324,-307,-291,-251,-320,-294,-306,-316,-316,-325,-296,-309,-297,-329,-299,27,27,16,13,16,29,-165,-178,-202,-222,-194,-173,-120,-80,-97,-77,-62,-48,-15,3,-16,7,3,-28,-236,-219,-213,-218,-236,-223,-11,-9,-8,-21,-32,-38,-13,3,2,9,10,-40,-37,-21,-22,-8,15,1,282,358,373,412,355,284,273,285,281,293,298,273,298,304,295,299,313,347,295,305,287,307,294,306,121,112,84,93,100,101,80,68,56,63,56,54,17,65,42,22,23,28,-12,12,-35,-34,-14],"太陽":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,1,7,81,235,342,468,688,974,1287,1653,2087,2539,2985,3427,3800,4144,4517,4828,5036,5255,5454,5718,5908,6063,6281,6554,6825,7078,7191,7503,7552,7453,7540,7619,7574,7828,7991,8085,8180,8340,8379,8405,8322,8262,8244,8120,8046,8102,7884,7751,7680,7832,7850,7686,7550,7439,7279,6876,6511,6149,5964,5720,5416,5077,4834,4604,4445,4139,3726,3451,3123,2695,2343,1968,1700,1412,1096,956,773,529,368,180,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]};
+var T = D['時間'], PUMP = D['抽蓄'], BAT = D['電池'], SUN = D['太陽'];
+var SCALE = D['尺度'], SUNMAX = Math.max.apply(null, SUN);
+
+// 兩個極值的位置先算好，對話要單獨講這兩刻
+var iBatMax = BAT.indexOf(Math.max.apply(null, BAT));
+var iPumpMin = PUMP.indexOf(Math.min.apply(null, PUMP));
+
+var hS = document.getElementById('hSlider'), hV = document.getElementById('hVal');
+var barPump = document.getElementById('barPump'), barBat = document.getElementById('barBat');
+var mwPump = document.getElementById('mwPump'), mwBat = document.getElementById('mwBat');
+var barSun = document.getElementById('barSun'), mwSun = document.getElementById('mwSun');
+var ans = document.getElementById('ans');
+var turtleBox = document.getElementById('turtleBox'), rayBox = document.getElementById('rayBox');
+
+function comma(n) {
+  var s = String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return (n < 0 ? '-' : '') + s;
+}
+
+// 零在正中間：正的往右長，負的往左長。這是本工具要教的唯一一件事。
+function setBar(el, v) {
+  var half = v / SCALE * 50;
+  if (v >= 0) { el.style.left = '50%'; el.style.width = half + '%'; el.style.background = '#2E7D32'; }
+  else { el.style.left = (50 + half) + '%'; el.style.width = (-half) + '%'; el.style.background = '#C62828'; }
+}
+
+function draw() {
+  var i = parseInt(hS.value, 10);
+  hV.textContent = T[i];
+  var p = PUMP[i], b = BAT[i], s = SUN[i];
+  setBar(barPump, p); setBar(barBat, b);
+  mwPump.textContent = comma(p) + ' MW';
+  mwBat.textContent = comma(b) + ' MW';
+  mwPump.style.color = p >= 0 ? '#2E7D32' : '#C62828';
+  mwBat.style.color = b >= 0 ? '#2E7D32' : '#C62828';
+  barSun.style.width = (s / SUNMAX * 100).toFixed(1) + '%';
+  mwSun.textContent = comma(s) + ' MW';
+  mwSun.style.color = '#F9A825';
+
+  var both = (p < 0 && b < 0) ? '兩個都在存電' :
+             (p > 0 && b > 0) ? '兩個都在放電' : '一個存、一個放';
+  ans.textContent = both;
+
+  // ⚠️ 對話由**資料**決定，不要由時鐘決定。
+  // 原本寫 hh>=2&&hh<=7 就出過錯：07:50 太陽已經四千多，它還在說「半夜大家在睡覺」。
+  // 太陽是在往上爬還是往下掉：跟一小時前比（一小時＝6 筆）
+  var rising = (i >= 6) ? (s > SUN[i - 6]) : (s > 0);
+  var t, r;
+  if (i === iBatMax) {
+    t = '🐢 海龜助教：電池這一刻放得最多，一整天就這裡最用力。';
+    r = '⚡ 電鱝老師：' + comma(b) + ' MW。電池的長處不是量大，是說放就放。';
+  } else if (i === iPumpMin) {
+    t = '🐢 海龜助教：藍色那條伸到最左邊了！';
+    r = '⚡ 電鱝老師：' + comma(-p) + ' MW 全部拿去把水抽到山上。一整天就這裡存最多。';
+  } else if (p < 0 && b < 0) {
+    if (s > 3000) {
+      t = '🐢 海龜助教：太陽光電這麼厚，兩條卻還是往左邊。';
+      r = '⚡ 電鱝老師：電多出來的時候先存，傍晚才有得放。';
+    } else {
+      t = '🐢 海龜助教：兩條都往左邊！牠們不是在發電，是在跟電網拿電。';
+      r = '⚡ 電鱝老師：這時候大家用電少，存起來最划算。';
+    }
+  } else if (p > 0 && b > 0) {
+    if (s === 0) {
+      t = '🐢 海龜助教：太陽光電是 0，兩條都在右邊。';
+      r = '⚡ 電鱝老師：換牠們了。之前存起來的電，現在放出來。';
+    } else if (rising) {
+      t = '🐢 海龜助教：太陽剛爬上來，兩條就往右邊了。';
+      r = '⚡ 電鱝老師：大家起床了，用電衝上去。先幫忙頂一下。';
+    } else {
+      t = '🐢 海龜助教：太陽還在，可是兩條已經開始往右邊了。';
+      r = '⚡ 電鱝老師：太陽在往下掉，用電卻在往上爬。得先補上去。';
+    }
+  } else {
+    t = '🐢 海龜助教：咦，一個往左一個往右。';
+    r = '⚡ 電鱝老師：兩種儲能不必同進同出，各自看各自的狀況。';
+  }
+  turtleBox.textContent = t;
+  rayBox.textContent = r;
+}
+hS.addEventListener('input', draw);
+draw();
+
+var y = new Date().getFullYear();
+document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
+</script>
+</body>
+</html>
