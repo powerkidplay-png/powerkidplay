@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：公投兩道關卡計算機
+  開發日期：2026-09-01
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，須事先來信取得同意：
+  powerkidplay@gmail.com
+-->
+<title>公投兩道關卡計算機</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#4527A0,#5E35B1);
+    color: #fff; font-size: 18px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 4px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 4px; }
+  .val-badge {
+    font-size: 17px; font-weight: 800; padding: 3px 13px;
+    border-radius: 20px; color: #fff; min-width: 78px; text-align: center;
+    background: #5E35B1;
+  }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #5E35B1; border: 3px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.28); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #5E35B1; border: 3px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.28); cursor: pointer;
+  }
+  .slider-row { margin-bottom: 16px; }
+
+  .presets { padding: 0 18px 14px; }
+  .presets .cap { font-size: 12px; color: #888; margin-bottom: 7px; }
+  .btn-row { display: flex; gap: 7px; }
+  .btn-row button {
+    flex: 1; font-family: inherit; font-size: 12.5px; font-weight: 700;
+    padding: 9px 2px; border-radius: 10px; cursor: pointer;
+    border: 2px solid #D1C4E9; background: #F5F2FB; color: #4527A0;
+    line-height: 1.35;
+  }
+  .btn-row button.on { background: #5E35B1; border-color: #5E35B1; color: #fff; }
+
+  .stage { display: flex; gap: 14px; padding: 4px 18px 0; align-items: stretch; }
+  .col-wrap { width: 108px; flex: none; position: relative; }
+  .col-outer {
+    position: relative; height: 190px; width: 100%;
+    background: #EEF3F9; border: 2px solid #CBD8E6;
+    border-radius: 10px; overflow: hidden;
+  }
+  .col-fill {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg,#7E57C2,#4527A0);
+    transition: height .18s ease;
+  }
+  .line25 {
+    position: absolute; left: 0; right: 0; height: 0;
+    border-top: 3px dashed #E53935;
+    /* 通則：不要靠背景是什麼顏色來決定線的顏色，線自己帶外框。
+       同意票超過四分之一時這條線會壓在深紫色柱身上，沒有外框就看不見。 */
+    filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 2px #fff);
+  }
+  .line25 span {
+    position: absolute; right: 2px; top: -17px;
+    font-size: 11px; font-weight: 800; color: #E53935;
+    background: #fff; padding: 0 3px; border-radius: 3px;
+  }
+  .col-cap { font-size: 11px; color: #888; text-align: center; margin-top: 5px; line-height: 1.4; }
+  .pct-big {
+    position: absolute; left: 0; right: 0; top: 8px; text-align: center;
+    font-size: 19px; font-weight: 800; color: #4527A0;
+  }
+
+  .gates { flex: 1; display: flex; flex-direction: column; gap: 9px; justify-content: center; }
+  .gate {
+    border-radius: 12px; padding: 9px 11px; border: 2px solid #DDD; background: #FAFAFA;
+  }
+  .gate.pass { border-color: #43A047; background: #F1F8E9; }
+  .gate.fail { border-color: #E53935; background: #FFEBEE; }
+  .gate .gh { font-size: 13px; font-weight: 800; color: #444; margin-bottom: 3px; }
+  .gate .gd { font-size: 12px; color: #666; line-height: 1.5; }
+  .gate .gm { float: right; font-size: 16px; font-weight: 800; }
+  .gate.pass .gm { color: #2E7D32; }
+  .gate.fail .gm { color: #C62828; }
+
+  .verdict {
+    margin: 14px 18px 0; padding: 11px 12px; border-radius: 12px;
+    text-align: center; font-size: 16px; font-weight: 800; color: #fff;
+  }
+  .verdict.ok { background: #2E7D32; }
+  .verdict.no { background: #C62828; }
+
+  .talk { padding: 12px 18px 4px; }
+  .bubble {
+    font-size: 13px; line-height: 1.65; color: #333;
+    background: #F3F6FA; border-radius: 12px; padding: 9px 12px; margin-bottom: 8px;
+  }
+  .bubble.ray { background: #FFF8E1; }
+  .note { font-size: 11px; color: #999; padding: 4px 18px 0; line-height: 1.6; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 12px 12px 16px; }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">🗳 公投兩道關卡計算機</div>
+
+  <div class="control-area">
+    <div class="slider-row">
+      <div class="slider-head">
+        <span class="lbl">來投票的人 <small>100 個人裡有幾個去投</small></span>
+        <span class="val-badge" id="bT">30 人</span>
+      </div>
+      <input type="range" id="sT" min="0" max="100" step="1" value="30">
+    </div>
+    <div class="slider-row">
+      <div class="slider-head">
+        <span class="lbl">投同意的比例 <small>去投的人裡面</small></span>
+        <span class="val-badge" id="bA">73%</span>
+      </div>
+      <input type="range" id="sA" min="0" max="100" step="1" value="73">
+    </div>
+  </div>
+
+  <div class="presets">
+    <div class="cap">試試臺灣真實的三次核能公投</div>
+    <div class="btn-row">
+      <button data-k="y2018">2018<br>第16案</button>
+      <button data-k="y2021">2021<br>第17案</button>
+      <button data-k="y2025">2025<br>第21案</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="col-wrap">
+      <div class="col-outer">
+        <div class="col-fill" id="fill"></div>
+        <div class="line25" id="l25"><span>四分之一</span></div>
+        <div class="pct-big" id="pct">22.0%</div>
+      </div>
+      <div class="col-cap">同意票佔<br>可以投票的人</div>
+    </div>
+    <div class="gates">
+      <div class="gate" id="g1">
+        <div class="gh"><span class="gm" id="m1">○</span>第一關</div>
+        <div class="gd" id="d1"></div>
+      </div>
+      <div class="gate" id="g2">
+        <div class="gh"><span class="gm" id="m2">✕</span>第二關</div>
+        <div class="gd" id="d2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="verdict no" id="vd">不通過</div>
+
+  <div class="talk">
+    <div class="bubble" id="tb">🐢 海龜助教：</div>
+    <div class="bubble ray" id="rb">⚡ 電鱝老師：</div>
+  </div>
+
+  <div class="note" id="nt"></div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+
+<script>
+var REAL = {
+  y2018: { name: "2018 第16案", el: 19757067, ag: 5895560, di: 4014215 },
+  y2021: { name: "2021 第17案", el: 19825468, ag: 3804689, di: 4262517 },
+  y2025: { name: "2025 第21案", el: 20002091, ag: 4341432, di: 1511693 }
+};
+var sT = document.getElementById("sT"), sA = document.getElementById("sA");
+var state = null;   // 按了真實案例時放 key，拉滑桿時回到 null
+var TOP = 40;       // 柱子畫到 40% 算滿格，25% 那條線才不會頂在最上面
+
+function comma(n) {
+  var s = String(Math.round(n)), out = "", c = 0, i;
+  for (i = s.length - 1; i >= 0; i--) {
+    out = s.charAt(i) + out;
+    if (++c % 3 === 0 && i > 0) out = "," + out;
+  }
+  return out;
+}
+function wan(n) { return Math.round(n / 10000) + " 萬"; }
+
+function figures() {
+  if (state) {
+    var r = REAL[state];
+    return { el: r.el, ag: r.ag, di: r.di, real: true, name: r.name };
+  }
+  var voters = +sT.value;
+  var ag = Math.round(voters * (+sA.value) / 100);
+  return { el: 100, ag: ag, di: voters - ag, real: false };
+}
+
+function draw() {
+  var f = figures();
+  var share = f.el ? f.ag / f.el * 100 : 0;
+  var need = f.el / 4;
+  var gate1 = f.ag > f.di;
+  var gate2 = f.ag >= need;
+
+  document.getElementById("fill").style.height = Math.min(100, share / TOP * 100) + "%";
+  document.getElementById("l25").style.bottom = (25 / TOP * 100) + "%";
+  document.getElementById("pct").textContent = share.toFixed(1) + "%";
+
+  document.getElementById("g1").className = "gate " + (gate1 ? "pass" : "fail");
+  document.getElementById("g2").className = "gate " + (gate2 ? "pass" : "fail");
+  document.getElementById("m1").textContent = gate1 ? "○" : "✕";
+  document.getElementById("m2").textContent = gate2 ? "○" : "✕";
+
+  var big = function (n) { return f.real ? wan(n) : Math.round(n) + " 票"; };
+  document.getElementById("d1").innerHTML =
+    "同意要比不同意多<br>同意 <b>" + big(f.ag) + "</b>　不同意 <b>" + big(f.di) + "</b>";
+  document.getElementById("d2").innerHTML =
+    "同意要到可以投票的人的四分之一<br>需要 <b>" +
+    (f.real ? wan(need) : Math.ceil(need) + " 票") +
+    "</b>　現在 <b>" + big(f.ag) + "</b>";
+
+  var ok = gate1 && gate2;
+  var vd = document.getElementById("vd");
+  vd.className = "verdict " + (ok ? "ok" : "no");
+  vd.textContent = ok ? "通過" : "不通過";
+
+  var t, r, gap;
+  if (ok) {
+    t = "🐢 海龜助教：兩關都過了，這一案通過";
+    r = "⚡ 電鱝老師：票比較多，而且是夠多的人一起點頭";
+  } else if (!gate1 && !gate2) {
+    t = "🐢 海龜助教：兩關都沒過，同意的人本來就比較少";
+    r = "⚡ 電鱝老師：第一關就卡住了，第二關不用算也知道";
+  } else if (!gate1) {
+    t = "🐢 海龜助教：第一關就沒過，不同意的比同意的多";
+    r = "⚡ 電鱝老師：先比多少，再看夠不夠，順序不能換";
+  } else {
+    gap = need - f.ag;
+    t = "🐢 海龜助教：贏了對手，可是還差 " +
+        (f.real ? wan(gap) : Math.ceil(gap) + " 票") + " 才碰到那條線";
+    r = "⚡ 電鱝老師：這就是贏了對手，輸給門檻";
+  }
+  document.getElementById("tb").textContent = t;
+  document.getElementById("rb").textContent = r;
+
+  document.getElementById("nt").innerHTML = f.real
+    ? "📎 " + f.name + "｜可以投票的人 " + comma(f.el) + " 人，同意 " + comma(f.ag) +
+      " 票，不同意 " + comma(f.di) + " 票。數字取自中央選舉委員會公告，廢票不列入計算。"
+    : "拉滑桿試試看。這裡把可以投票的人當成 100 個比較好算，真實的公投是兩千萬人，算法一模一樣。";
+}
+
+function clearPresets() {
+  state = null;
+  var bs = document.querySelectorAll(".btn-row button"), i;
+  for (i = 0; i < bs.length; i++) bs[i].className = "";
+}
+function badges() {
+  document.getElementById("bT").textContent = sT.value + " 人";
+  document.getElementById("bA").textContent = sA.value + "%";
+}
+function onSlide() { clearPresets(); badges(); draw(); }
+sT.addEventListener("input", onSlide);
+sA.addEventListener("input", onSlide);
+
+var btns = document.querySelectorAll(".btn-row button"), j;
+for (j = 0; j < btns.length; j++) {
+  btns[j].addEventListener("click", function () {
+    var k = this.getAttribute("data-k"), r = REAL[k], valid = r.ag + r.di;
+    clearPresets();
+    this.className = "on";
+    sT.value = Math.round(valid / r.el * 100);
+    sA.value = Math.round(r.ag / valid * 100);
+    badges();
+    state = k;
+    draw();
+  });
+}
+
+onSlide();
+
+var y = new Date().getFullYear();
+document.getElementById("year").textContent = (y > 2026) ? ("2026–" + y) : "2026";
+</script>
+</body>
+</html>
