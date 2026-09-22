@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：六部核能機組時間軸
+  開發日期：2026-09-01
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，須事先來信取得同意：
+  powerkidplay@gmail.com
+-->
+<title>六部核能機組時間軸</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#006064,#00838F);
+    color: #fff; font-size: 18px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
+  }
+  .control-area { padding: 18px 18px 8px; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .slider-head .lbl { font-size: 15px; font-weight: 700; color: #2a2a2a; }
+  .slider-head .lbl small { font-weight: 400; color: #999; font-size: 12px; margin-left: 4px; }
+  .val-badge {
+    font-size: 19px; font-weight: 800; padding: 3px 15px;
+    border-radius: 20px; color: #fff; min-width: 84px; text-align: center;
+    background: #00838F;
+  }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 10px; border-radius: 6px;
+    background: #DCE7F2; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #00838F; border: 3px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.28); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #00838F; border: 3px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.28); cursor: pointer;
+  }
+  .year-step {
+    display: flex; gap: 10px; margin-top: 15px;
+  }
+  .year-step button {
+    flex: 1; min-height: 44px; border: 0; border-radius: 12px;
+    background: #00838F; color: #fff; font: inherit; font-size: 14px; font-weight: 800;
+    cursor: pointer; touch-action: manipulation;
+    box-shadow: 0 2px 6px rgba(0,96,100,0.18);
+  }
+  .year-step button:active:not(:disabled) { transform: translateY(1px); }
+  .year-step button:disabled {
+    background: #CFD8DC; color: #78909C; cursor: default; box-shadow: none;
+  }
+
+  .units { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 4px 18px 0; }
+  .unit {
+    border-radius: 12px; padding: 9px 6px 8px; text-align: center;
+    border: 2px solid #E0E0E0; background: #FAFAFA;
+    transition: background .18s, border-color .18s;
+  }
+  .unit .dot {
+    width: 22px; height: 22px; border-radius: 50%; margin: 0 auto 5px;
+    background: #CFD8DC; transition: background .18s, box-shadow .18s;
+  }
+  .unit .nm { font-size: 12.5px; font-weight: 800; color: #37474F; line-height: 1.3; }
+  .unit .st { font-size: 11px; color: #90A4AE; margin-top: 2px; }
+  .unit.on { border-color: #4DB6AC; background: #E0F2F1; }
+  .unit.on .dot { background: #00BFA5; box-shadow: 0 0 0 4px rgba(0,191,165,.20); }
+  .unit.on .st { color: #00796B; font-weight: 700; }
+  .unit.go { border-color: #FFB74D; background: #FFF8E1; }
+  .unit.go .dot { background: #FB8C00; box-shadow: 0 0 0 4px rgba(251,140,0,.22); }
+  .unit.go .st { color: #E65100; font-weight: 800; }
+
+  .readout { display: flex; gap: 10px; padding: 14px 18px 0; }
+  .box {
+    flex: 1; border-radius: 12px; padding: 10px 8px; text-align: center;
+    background: #F3F6FA;
+  }
+  .box .k { font-size: 11.5px; color: #78909C; margin-bottom: 3px; }
+  .box .v { font-size: 21px; font-weight: 800; color: #006064; }
+  .box .v small { font-size: 12px; font-weight: 700; margin-left: 2px; }
+
+  .barwrap { padding: 12px 18px 0; }
+  .bartrack { height: 16px; border-radius: 9px; background: #ECEFF1; overflow: hidden; }
+  .barfill {
+    height: 100%; border-radius: 9px;
+    background: linear-gradient(90deg,#00ACC1,#006064);
+    transition: width .2s ease;
+  }
+  .barcap { font-size: 11px; color: #90A4AE; margin-top: 5px; }
+
+  .talk { padding: 13px 18px 4px; }
+  .bubble {
+    font-size: 13px; line-height: 1.65; color: #333;
+    background: #F3F6FA; border-radius: 12px; padding: 9px 12px; margin-bottom: 8px;
+  }
+  .bubble.ray { background: #FFF8E1; }
+  .note { font-size: 11px; color: #999; padding: 4px 18px 0; line-height: 1.6; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 12px 12px 16px; }
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">⚛️ 六部核能機組時間軸</div>
+
+  <div class="control-area">
+    <div class="slider-head">
+      <span class="lbl">年份 <small>拉拉看，機組與發電量怎麼變</small></span>
+      <span class="val-badge" id="bY">2007</span>
+    </div>
+    <input type="range" id="sY" min="2007" max="2025" step="1" value="2007">
+    <div class="year-step" aria-label="年份逐年切換">
+      <button type="button" id="prevY" aria-label="上一年">← 上一年</button>
+      <button type="button" id="nextY" aria-label="下一年">下一年 →</button>
+    </div>
+  </div>
+
+  <div class="units" id="units"></div>
+
+  <div class="readout">
+    <div class="box">
+      <div class="k">那一年的核能發電量</div>
+      <div class="v" id="vG">405.4<small>億度</small></div>
+    </div>
+    <div class="box">
+      <div class="k">佔全國發電量</div>
+      <div class="v" id="vS">16.7<small>%</small></div>
+    </div>
+  </div>
+
+  <div class="barwrap">
+    <div class="bartrack"><div class="barfill" id="bar"></div></div>
+    <div class="barcap" id="barcap"></div>
+  </div>
+
+  <div class="talk">
+    <div class="bubble" id="tb">🐢 海龜助教：</div>
+    <div class="bubble ray" id="rb">⚡ 電鱝老師：</div>
+  </div>
+
+  <div class="note" id="nt"></div>
+  <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
+</div>
+
+<script>
+// 逐年發電量與佔比：經濟部能源署《能源統計月報》表 3-02、3-03
+var YR = [
+  {y:2007, g:405.4, s:16.7, c:5144}, {y:2008, g:408.3, s:17.1, c:5144},
+  {y:2009, g:415.7, s:18.1, c:5144}, {y:2010, g:416.3, s:16.8, c:5144},
+  {y:2011, g:421.2, s:16.7, c:5144}, {y:2012, g:404.2, s:16.1, c:5144},
+  {y:2013, g:416.4, s:16.5, c:5144}, {y:2014, g:423.9, s:16.3, c:5144},
+  {y:2015, g:364.7, s:14.1, c:5144}, {y:2016, g:316.6, s:12.0, c:5144},
+  {y:2017, g:224.5, s:8.3,  c:5144}, {y:2018, g:276.8, s:10.0, c:4508},
+  {y:2019, g:323.2, s:11.8, c:3872}, {y:2020, g:314.4, s:11.2, c:3872},
+  {y:2021, g:277.9, s:9.5,  c:2887}, {y:2022, g:237.5, s:8.2,  c:2887},
+  {y:2023, g:178.0, s:6.3,  c:1902}, {y:2024, g:121.8, s:4.2,  c:951},
+  {y:2025, g:32.4,  s:1.1,  c:0}
+];
+
+// 商轉年、執照到期年、容量（MW）：台電〈核電廠簡介〉
+var UNITS = [
+  {n:"核一 1號機", from:1978, to:2018, mw:636},
+  {n:"核一 2號機", from:1979, to:2019, mw:636},
+  {n:"核二 1號機", from:1981, to:2021, mw:985},
+  {n:"核二 2號機", from:1983, to:2023, mw:985},
+  {n:"核三 1號機", from:1984, to:2024, mw:951},
+  {n:"核三 2號機", from:1985, to:2025, mw:951}
+];
+
+var GMAX = 423.9;   // 2014 年最高，拿來當長條的滿格
+var sY = document.getElementById("sY");
+var prevY = document.getElementById("prevY");
+var nextY = document.getElementById("nextY");
+var box = document.getElementById("units");
+
+for (var i = 0; i < UNITS.length; i++) {
+  var d = document.createElement("div");
+  d.className = "unit";
+  d.innerHTML = '<div class="dot"></div><div class="nm">' + UNITS[i].n +
+                '</div><div class="st"></div>';
+  box.appendChild(d);
+}
+var cards = box.querySelectorAll(".unit");
+
+function row(y) {
+  for (var i = 0; i < YR.length; i++) if (YR[i].y === y) return YR[i];
+  return YR[0];
+}
+
+function draw() {
+  var y = +sY.value, r = row(y);
+  document.getElementById("bY").textContent = y;
+  prevY.disabled = y <= +sY.min;
+  nextY.disabled = y >= +sY.max;
+
+  var running = 0, goingThisYear = null;
+  for (var i = 0; i < UNITS.length; i++) {
+    var u = UNITS[i], c = cards[i], st = c.querySelector(".st");
+    if (y < u.to) {
+      c.className = "unit on";
+      st.textContent = "原執照期內";
+      running++;
+    } else if (y === u.to) {
+      c.className = "unit go";
+      st.textContent = "這年屆期";
+      goingThisYear = u;
+      running++;
+    } else {
+      c.className = "unit";
+      st.textContent = "已屆期";
+    }
+  }
+
+  document.getElementById("vG").innerHTML = r.g.toFixed(1) + '<small>億度</small>';
+  document.getElementById("vS").innerHTML = r.s.toFixed(1) + '<small>%</small>';
+  document.getElementById("bar").style.width = (r.g / GMAX * 100).toFixed(1) + "%";
+  document.getElementById("barcap").textContent =
+    "長條是跟 2014 年最高的 423.9 億度比";
+
+  var t, b;
+  if (goingThisYear) {
+    t = "🐢 海龜助教：" + goingThisYear.n + "的原運轉執照這一年屆期，" +
+        goingThisYear.from + " 年開始商轉";
+    // 最後一部到期的那一年，收尾要講歸零，不然全文的重點在工具裡看不到。
+    b = (running === 1)
+      ? "⚡ 電鱝老師：這是最後一部，2025 年 5 月 18 日起，臺灣沒有核能機組發電"
+      : "⚡ 電鱝老師：這裡顯示的是執照時間軸，不代表這一年每一天都在運轉";
+  } else if (running === 6) {
+    t = "🐢 海龜助教：六部原運轉執照都還在有效期內，裝置容量合計 5,144 MW";
+    b = "⚡ 電鱝老師：核能過去曾是臺灣重要基載電源之一";
+  } else if (running === 0) {
+    t = "🐢 海龜助教：六部原運轉執照都已屆期，2025 年只有前五個月仍有核能發電";
+    b = "⚡ 電鱝老師：2025 年 5 月 18 日起，臺灣沒有核能機組發電";
+  } else {
+    t = "🐢 海龜助教：還有 " + running + " 部原運轉執照未屆期，對應裝置容量 " +
+        r.c.toLocaleString() + " MW";
+    b = "⚡ 電鱝老師：這裡顯示的是執照時間軸，不等於每一部全年都在運轉";
+  }
+  document.getElementById("tb").textContent = t;
+  document.getElementById("rb").textContent = b;
+
+  document.getElementById("nt").textContent =
+    "📎 發電量與佔比取自經濟部能源署《能源統計月報》；" +
+    "正式運轉與原運轉執照期限取自核安會公開資料。";
+}
+
+function stepYear(delta) {
+  var min = +sY.min, max = +sY.max;
+  var next = Math.max(min, Math.min(max, +sY.value + delta));
+  if (next === +sY.value) return;
+  sY.value = next;
+  draw();
+}
+
+sY.addEventListener("input", draw);
+prevY.addEventListener("click", function () { stepYear(-1); });
+nextY.addEventListener("click", function () { stepYear(1); });
+draw();
+
+var yy = new Date().getFullYear();
+document.getElementById("year").textContent = (yy > 2026) ? ("2026–" + yy) : "2026";
+</script>
+</body>
+</html>
