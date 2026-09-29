@@ -40,8 +40,8 @@
     color: #fff; font-size: 19px; font-weight: 700;
     text-align: center; padding: 16px 12px; letter-spacing: 0.5px;
   }
-  .control-area { padding: 18px 18px 4px; }
-  .slider-row { margin-bottom: 16px; }
+  .control-area { padding: 15px 18px 4px; }
+  .slider-row { margin-bottom: 12px; }
   .slider-head {
     display: flex; justify-content: space-between;
     align-items: center; margin-bottom: 9px;
@@ -77,7 +77,7 @@
   input.orangeThumb::-moz-range-thumb { background: #EF6C00; }
 
   .result-area {
-    margin: 4px 18px 16px;
+    margin: 4px 18px 12px;
     background: linear-gradient(135deg,#E3F2FD,#E0F6F3);
     border-radius: 14px; padding: 15px 14px; text-align: center;
   }
@@ -93,7 +93,7 @@
     font-weight: 700; border: 1px dashed #80CBC4;
   }
   .stage { padding: 0 18px 4px; }
-  .note { font-size: 13px; color: #555; margin-bottom: 8px; text-align: center; }
+  .note { font-size: 13px; color: #555; margin-bottom: 6px; text-align: center; }
   .note b { color: #00897B; font-size: 15px; }
   .btn {
     display: block; width: 100%; padding: 12px; margin-bottom: 9px;
@@ -107,26 +107,55 @@
   .btn.no { border-color: #E53935; background: #FFEBEE; color: #B71C1C; }
   .btn:disabled { cursor: default; opacity: .85; }
   .dialogue {
-    margin: 12px 18px 0; padding: 11px 14px;
+    margin: 8px 18px 0; padding: 8px 14px;
     border-radius: 12px; font-size: 14px; line-height: 1.6; font-weight: 500;
   }
   .turtle { background: #E8F5E9; border: 2px solid #66BB6A; color: #1B5E20; }
   .ray    { background: #E3F2FD; border: 2px solid #1976D2; color: #0D47A1; }
-  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 15px 12px 17px; }
+  .footer { text-align: center; font-size: 11px; color: #b0b0b0; padding: 12px 12px 12px; }
   .turbine {
-    font-size: 62px; text-align: center; margin: 4px 0 8px;
+    font-size: 54px; text-align: center; margin: 4px 0 8px;
     transition: transform .3s ease, opacity .3s ease;
   }
   .turbine.spin { animation: sp 1.4s linear infinite; }
   .turbine.fast { animation: sp .45s linear infinite; }
   .turbine.stop { opacity: .35; }
   @keyframes sp { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .town-area { margin: 0 18px 12px; border: 1px solid #B8DFEA; border-radius: 14px; overflow: hidden; background: #F5FCFF; }
+  .town-title { padding: 8px 12px 2px; color: #0D47A1; font-size: 15px; font-weight: 800; }
+  .town-scene { position: relative; min-height: 72px; padding: 4px 12px 7px; background: linear-gradient(#D9F3FF 0 62%, #B9E2DB 62%); }
+  .wind-trail { height: 10px; width: 70%; margin: 4px auto 3px; border-radius: 99px; background: linear-gradient(90deg,transparent,#24A9D8,transparent); transition: opacity .3s ease; }
+  .wind-trail.off { opacity: .1; }
+  .wind-trail.mid { opacity: .55; }
+  .wind-trail.on { opacity: 1; animation: travel 1.8s ease-in-out infinite alternate; }
+  @keyframes travel { from { transform: translateX(-8px); } to { transform: translateX(8px); } }
+  .town-houses { display: flex; justify-content: space-around; align-items: end; font-size: 30px; line-height: 1; }
+  .town-houses span { filter: drop-shadow(0 2px 2px #63959b); }
+  .town-text { padding: 8px 12px 5px; font-size: 13px; font-weight: 700; color: #086C84; }
+  .town-note { padding: 0 12px 7px; font-size: 12px; line-height: 1.5; color: #4D616B; }
+  .facts-toggle { display: block; width: calc(100% - 36px); min-height: 46px; margin: 0 18px 12px; border: 2px solid #147D9D; border-radius: 12px; background: #E5F8FC; color: #07536D; font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; }
+  .facts-toggle:focus-visible { outline: 3px solid #F9A825; outline-offset: 2px; }
+  .facts-panel { margin: 0 18px 12px; padding: 12px; border: 2px solid #B5DFE8; border-radius: 14px; background: #F8FDFF; }
+  .facts-panel[hidden] { display: none; }
+  .facts-panel h2 { font-size: 17px; color: #0D47A1; margin-bottom: 6px; }
+  .fact { padding: 7px 0; border-bottom: 1px solid #D8EBF1; font-size: 14px; line-height: 1.5; color: #27434C; }
+  .fact strong { display: block; color: #006F85; font-size: 18px; }
+  .fact:last-of-type { border-bottom: 0; }
+  .district-title { margin-top: 11px; font-size: 14px; color: #0D47A1; font-weight: 800; }
+  .district-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 5px; margin: 7px 0; }
+  .district { min-height: 32px; display: grid; place-items: center; border-radius: 8px; background: #E1EAF0; color: #47728B; font-size: 19px; transition: background .25s ease, transform .25s ease; }
+  .district.lit { background: #FFE27A; transform: scale(1.03); }
+  .district.half { background: linear-gradient(90deg,#FFE27A 50%,#E1EAF0 50%); }
+  .fact-small { font-size: 12px; color: #4B6269; line-height: 1.55; margin-top: 5px; }
+  .fact-sources { margin-top: 7px; font-size: 12px; line-height: 1.5; color: #375B68; }
+  .fact-sources a { color: #0D5A91; overflow-wrap: anywhere; }
+  @media (prefers-reduced-motion: reduce) { .turbine.spin,.turbine.fast,.wind-trail.on { animation: none; } .district { transition: none; } }
 </style>
 </head>
 <body>
 <div class="tool-wrap">
   <div class="title-bar">🐬 風機開不開？風速轉盤</div>
-
+  <div id="playPanel">
   <div class="control-area">
     <div class="slider-row">
       <div class="slider-head">
@@ -145,8 +174,29 @@
     <div class="result-number"><span class="big" id="state">發電中</span></div>
     <div class="formula" id="fm">切入 2.5–4　｜　額定 12–15　｜　切出 約 25（m/s）</div>
   </div>
+  <div class="town-area" aria-label="海邊城鎮的示意畫面">
+    <div class="town-title">🏘️ 海邊城鎮</div>
+    <div class="town-scene" aria-hidden="true">
+      <div class="wind-trail mid" id="windTrail"></div>
+      <div class="town-houses"><span>🏠</span><span>🏡</span><span>🏠</span><span>🏡</span><span>🏠</span></div>
+    </div>
+    <div class="town-text" id="windHelp" aria-live="polite">藍色風力正在幫忙供電</div>
+    <div class="town-note">房子一直有燈光：電網還有其他發電來源。藍光只示意風力的參與，不代表即時發電量。</div>
+  </div>
   <div class="dialogue turtle" id="turtleBox">🐢 海龜助教：拉風速看看風機什麼時候轉、什麼時候停。</div>
   <div class="dialogue ray" id="rayBox">⚡ 電鱝老師：風不是越大越好，剛剛好才好。</div>
+  </div>
+  <button class="facts-toggle" id="factsToggle" type="button" aria-expanded="false" aria-controls="julyFacts">📊 看看 2026 年 7 月真的發了多少電</button>
+  <section class="facts-panel" id="julyFacts" hidden>
+    <h2>2026 年 7 月，臺灣離岸風電成績</h2>
+    <div class="fact">月底已裝好的風機，合計最大出力<strong>約 462 萬瓩</strong>這叫「裝置容量」，不是每小時都真的發這麼多。</div>
+    <div class="fact">7 月整月實際發出的電<strong>約 5.85 億度</strong>平均攤到 744 小時，每小時約 78.6 萬度；不是某一小時的實測值。</div>
+    <div class="district-title">🏘️ 換成家庭用電，有多大？</div>
+    <div class="district-grid" id="districtGrid" aria-label="約19格半社區亮起，每格代表10萬戶一個月的用電量"></div>
+    <div class="fact">按台電的「每戶每月平均 300 度」估算，約等於<strong>195 萬戶一個月的用電量</strong>這只是用電量的比較，並非實際由離岸風電直接供電的戶數。</div>
+    <p class="fact-small">一格代表 10 萬戶一個月的平均用電量；最後一格亮一半。風機的電會進入共同電網，不會一座風機只接到一排房子。</p>
+    <div class="fact-sources">資料月份：2026/07；官方資料查詢：2026-09-29（臺灣時間）。<br>來源：<a href="https://ea01.moeaea.gov.tw/a0303/02/api/v1/zone/monthly/4/2" target="_blank" rel="noopener noreferrer">能源署裝置容量</a>、<a href="https://ea01.moeaea.gov.tw/a0303/02/api/v1/zone/monthly/4/1" target="_blank" rel="noopener noreferrer">能源署發電量</a>、<a href="https://service.taipower.com.tw/csr/esg/sustainable/new-sources-of-energy" target="_blank" rel="noopener noreferrer">台電每戶用電估算基準</a>。</div>
+  </section>
   <div class="footer">© <span id="year">2026</span> 電力爸爸的生活筆記</div>
 </div>
 <script>
@@ -159,7 +209,7 @@ function say(who, txt) {
 
 // ⚠️ 級距取自中央氣象署蒲福風級表；切入／額定／切出取自台電與能源署公開說明
 var BF = [
- [0.3,0,'靜，煙直上'],[1.5,1,'僅煙能表示風向'],[3.3,2,'人面感覺有風，樹葉搖動'],
+ [0.3,0,'靜，煙直上'],[1.5,1,'僅煙能表示風向'],[3.3,2,'風拂面、樹葉有聲'],
  [5.4,3,'樹葉及小枝搖動不息'],[7.9,4,'塵土及碎紙被吹揚'],[10.7,5,'有葉的小樹開始搖擺'],
  [13.8,6,'電線呼呼響，張傘困難'],[17.1,7,'全樹搖動，迎風步行不便'],[20.7,8,'小樹枝折斷，步行顯著困難'],
  [24.4,9,'屋瓦煙囪受損，樹枝折斷'],[28.4,10,'樹木連根拔起，建築物受損'],
@@ -169,6 +219,8 @@ var vS = document.getElementById('vSlider'), vVal = document.getElementById('vVa
 var bf = document.getElementById('bf'), feel = document.getElementById('feel');
 var st = document.getElementById('state'), fm = document.getElementById('fm');
 var tb = document.getElementById('turbine');
+var trail = document.getElementById('windTrail');
+var windHelp = document.getElementById('windHelp');
 function draw() {
   var v = parseInt(vS.value, 10);
   vVal.textContent = v + ' m/s';
@@ -179,18 +231,23 @@ function draw() {
   if (v < 3) {
     s = '還沒轉'; cls += ' stop';
     r = '風還不夠。要到「切入風速」，大約 2.5～4 m/s，風機才會開始發電。';
+    trail.className = 'wind-trail off'; windHelp.textContent = '風力還沒加入，社區仍有其他電力';
   } else if (v < 12) {
     s = '發電中'; cls += ' spin';
     r = '轉起來了。風越大發得越多，這一段是最常見的狀態。';
+    trail.className = 'wind-trail mid'; windHelp.textContent = '藍色風力正在幫忙供電';
   } else if (v < 25) {
     s = '滿載發電'; cls += ' fast';
     r = '到額定風速了，風機已經接近最大功率——再大也不會發更多。';
+    trail.className = 'wind-trail on'; windHelp.textContent = '風力貢獻變強，但這只是示意畫面';
   } else if (v < 34) {
     s = '降載或停機'; cls += ' stop';
     r = '超過切出風速（常見約 25 m/s，約蒲福 10 級）。有些機型先降載，有些直接停。';
+    trail.className = 'wind-trail mid'; windHelp.textContent = '依機型而定：風力可能減少，也可能暫停';
   } else {
     s = '停機'; cls += ' stop';
     r = '這種風速幾乎所有機型都停了。停機不是故障，是保護設備。';
+    trail.className = 'wind-trail off'; windHelp.textContent = '風機停下保護自己，社區還有其他電力';
   }
   st.textContent = s; tb.className = cls;
   say('r', r);
@@ -199,6 +256,37 @@ function draw() {
 }
 vS.addEventListener('input', draw);
 draw();
+
+var factsToggle = document.getElementById('factsToggle');
+var julyFacts = document.getElementById('julyFacts');
+var playPanel = document.getElementById('playPanel');
+var districtGrid = document.getElementById('districtGrid');
+for (var j = 0; j < 20; j++) {
+  var district = document.createElement('div');
+  district.className = 'district';
+  district.textContent = '⌂';
+  district.setAttribute('aria-hidden', 'true');
+  districtGrid.appendChild(district);
+}
+factsToggle.addEventListener('click', function () {
+  var opening = julyFacts.hidden;
+  julyFacts.hidden = !opening;
+  playPanel.hidden = opening;
+  factsToggle.setAttribute('aria-expanded', String(opening));
+  factsToggle.textContent = opening ? '↩ 回到風速轉盤' : '📊 看看 2026 年 7 月真的發了多少電';
+  if (opening) {
+    var blocks = districtGrid.children;
+    for (var k = 0; k < blocks.length; k++) blocks[k].className = 'district';
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    for (var n = 0; n < blocks.length; n++) {
+      (function (index) {
+        window.setTimeout(function () {
+          if (!julyFacts.hidden) blocks[index].className = index === 19 ? 'district half' : 'district lit';
+        }, reduceMotion ? 0 : index * 45);
+      })(n);
+    }
+  }
+});
 
 var y = new Date().getFullYear();
 document.getElementById('year').textContent = (y > 2026) ? ('2026–' + y) : '2026';
