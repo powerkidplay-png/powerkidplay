@@ -84,10 +84,10 @@
       <div class="meter" role="img" id="meter" aria-label="9月1日離岸風力日平均出力111.2萬瓩"><div class="meter-fill" id="meterFill"></div></div>
       <p class="help" id="sampleNote">這天收齊 144 筆十分鐘資料。</p>
       <label class="range-label" for="daySlider">拖動日期</label>
-      <input type="range" id="daySlider" min="1" max="29" value="1" aria-label="九月日期，一日至二十九日">
-      <div class="range-ends"><span>9/1</span><span>9/29</span></div>
+      <input type="range" id="daySlider" min="1" max="30" value="1" aria-label="九月日期，一日至三十日">
+      <div class="range-ends"><span>9/1</span><span>9/30</span></div>
       <div class="quick"><button type="button" data-day="16">看 9/16</button><button type="button" data-day="26">看 9/26</button></div>
-      <p class="help">長條只幫你比長短，不是風場裝置容量。9/30 機組資料不足，不列入。</p>
+      <p class="help">長條只幫你比長短，不是風場裝置容量。</p>
       <div id="roleBubble" class="bubble turtle" aria-live="polite">海龜助教：「拖拖看，每天會一樣嗎？」</div>
       <div class="milestones" aria-label="已觀察的日期"><span id="seen16">○ 看過 9/16</span><span id="seen26">○ 看過 9/26</span></div>
       <p class="help" id="comparison" aria-live="polite">找找高低不同的兩天，不必猜是哪座風場或哪種天氣造成。</p>
@@ -107,16 +107,16 @@
     </section>
 
     <button class="reset" id="resetButton" type="button">重新觀察</button>
-    <footer>資料：台電公司十分鐘機組資料，本篇逐點重算。僅 2026/9/1–9/29，9/11 少一筆；不是官方月發電量。<br><a href="https://www.taipower.com.tw/2289/2363/2367/2368/10266/normalPost" target="_blank" rel="noopener noreferrer">查看台電公司各機組發電量入口</a><br>© <span id="copyrightYear">2026</span> 電力爸爸的生活筆記</footer>
+    <footer>資料：台電公司十分鐘機組資料，本篇逐點重算。2026/9/1–9/30，9/11 少一筆；不是官方月發電量。資料取得：2026/10/8。<br><a href="https://www.taipower.com.tw/2289/2363/2367/2368/10266/normalPost" target="_blank" rel="noopener noreferrer">查看台電公司各機組發電量入口</a><br>© <span id="copyrightYear">2026</span> 電力爸爸的生活筆記</footer>
   </main>
   <script>
     "use strict";
-    // 2026/9/1–9/29 台電公司十分鐘機組資料，離岸風力每日平均 MW / 10，顯示到 0.1 萬瓩。
-    const daily = Object.freeze([111.2,69.9,79.9,8.7,161.8,241.4,119.2,95.8,270.9,318.3,350.2,262.1,168.4,303.1,329.9,336.0,300.2,206.5,227.1,199.5,239.0,247.8,175.3,130.7,32.7,2.5,40.3,65.0,48.9]);
+    // 2026/9/1–9/30 台電公司十分鐘機組資料，離岸風力每日平均 MW / 10，四捨五入到 0.1 萬瓩；9/30 原值為 10.45 萬瓩。
+    const daily = Object.freeze([111.2,69.9,79.9,8.7,161.8,241.4,119.2,95.8,270.9,318.3,350.2,262.1,168.4,303.1,329.9,336.0,300.2,206.5,227.1,199.5,239.0,247.8,175.3,130.7,32.7,2.5,40.3,65.0,48.9,10.5]);
     const news = Object.freeze({
       wind: {title:"9/1 風場完工儀式",stage:"工程進度",detail:"沃旭能源舉行兩座風場的完工儀式；新聞稿同時寫到最終測試與相關許可申請。這不是每天固定能發多少電。"},
       gas: {title:"9/4 公布燃氣雙機同步滿載",stage:"機組運轉進度",detail:"台電在9月4日公布：台中電廠新燃氣雙機首度同步滿載發電。當時2號機仍在測試運轉；這不等於兩部都已正式商轉。"},
-      price: {title:"9/18 電價審議",stage:"費率決議",detail:"電價審議會決議十月起維持現行費率。這是在談電費，不是當天發電量。"},
+      price: {title:"9/18 電價審議",stage:"費率決議",detail:"電價審議會決議十月起維持現行費率。這是在談電價，不是當天發電量。"},
       nuclear: {title:"9/24 核三計畫審查",stage:"安全審查進度",detail:"核三廠再運轉計畫完成審查；後續仍有執行與安全查核，不等於機組已恢復發電。"},
       grid: {title:"9/24 松湖變電所開工",stage:"送電工程進度",detail:"松湖變電所開工，永久設施尚未完工。變電所幫忙送電，本身不是發電機。"}
     });
@@ -136,7 +136,7 @@
 
     function clampDay(value) {
       const number = Number(value);
-      return Number.isFinite(number) ? Math.min(29, Math.max(1, Math.round(number))) : 1;
+      return Number.isFinite(number) ? Math.min(daily.length, Math.max(1, Math.round(number))) : 1;
     }
 
     function showDay(input) {
