@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：光電板的下一站
+  開發日期：2026-09-10
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，須事先來信取得同意：
+  powerkidplay@gmail.com
+-->
+<title>光電板的下一站</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    padding: 10px;
+  }
+  .tool-wrap {
+    max-width: 450px; margin: 0 auto; background: #ffffff;
+    border-radius: 18px; box-shadow: 0 6px 22px rgba(21,101,192,0.16);
+    overflow: hidden;
+  }
+  .title-bar {
+    background: linear-gradient(135deg,#1565C0,#1976D2);
+    color: #fff; font-size: 19px; font-weight: 700;
+    text-align: center; padding: 16px 12px; letter-spacing: .5px;
+  }
+  .hint {
+    font-size: 13px; padding: 11px 18px 6px;
+    color: #666; text-align: center; line-height: 1.7;
+  }
+  .note {
+    margin: 12px 14px 14px; padding: 11px 13px; border-radius: 10px;
+    background: #E8F4FA; border: 1px solid #B3DDF0;
+    font-size: 13px; color: #0B4F6C; line-height: 1.75; min-height: 58px;
+  }
+  .note b { color: #01579B; }
+  .note.warn { background: #FFF3E0; border-color: #FFCC80; color: #8A4B08; }
+  .note.good { background: #E8F5E9; border-color: #A5D6A7; color: #1B5E20; }
+  .btns { display: flex; gap: 8px; padding: 4px 16px 12px; }
+  button {
+    flex: 1; padding: 12px; font-size: 15px; font-weight: 700;
+    border: none; border-radius: 10px; cursor: pointer; font-family: inherit;
+  }
+  .go { background: #1565C0; color: #fff; }
+  .go:active { background: #0D47A1; }
+  .rs { background: #ECEFF1; color: #546E7A; }
+  .row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .row label { font-size: 13px; color: #455A64; min-width: 76px; }
+  input[type=range] { flex: 1; accent-color: #1565C0; }
+  .val {
+    font-size: 13px; font-weight: 700; color: #1565C0;
+    min-width: 66px; text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .ctrl { padding: 12px 16px 4px; }
+
+  .inspect { display:flex; gap:8px; padding:10px 14px 2px; }
+  .inspect button { background:#FAFAFA; color:#37474F; border:2px solid #E0E0E0; font-size:13px; }
+  .inspect button.on { background:#E3F2FD; border-color:#1565C0; color:#0D47A1; }
+  .paths { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:9px 14px 2px; }
+  .path { display:block; width:100%; min-height:76px; padding:8px 4px; border:2px dashed #B0BEC5; border-radius:10px; background:#fff; text-align:center; font-size:12px; color:#546E7A; cursor:pointer; touch-action:manipulation; }
+  .path strong { display:block; font-size:18px; color:#1565C0; margin-bottom:3px; }
+  .path.good { border-color:#43A047; background:#E8F5E9; }
+  .path.bad { border-color:#E53935; background:#FFEBEE; }
+  .timeline { margin:9px 14px 0; height:9px; background:linear-gradient(90deg,#90CAF9,#66BB6A,#FFCC80); border-radius:8px; }
+
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="title-bar">光電板的下一站</div>
+  <div class="hint">看圖卡、選下一站，再讀情境回饋。真實光電設備請交給專業人員，孩子不要靠近、檢查或拆卸。</div>
+
+  <div class="inspect" id="inspect"><button data-s="完整">完整</button><button data-s="變暗">變暗</button><button data-s="破損">外皮或框架破損</button></div>
+  <div class="paths"><button type="button" class="path" data-p="繼續使用"><strong>↻</strong>繼續使用</button><button type="button" class="path" data-p="專業維修"><strong>⚙</strong>交給專業維修</button><button type="button" class="path" data-p="分類回收"><strong>♻</strong>分類回收</button></div>
+  <div class="timeline"></div>
+  <div class="note" id="note">先選一種設備狀況。</div>
+  <div class="btns"><button class="rs" id="reset">重來</button></div>
+
+</div>
+<script>
+
+const $=i=>document.getElementById(i);
+let st='';
+const feedback={
+  '完整':{
+    '繼續使用':['good','看起來完整，可以先請專業人員確認安全與性能；確認合適後再繼續使用。'],
+    '專業維修':['good','交給專業人員檢查是安全的起點；若功能正常，不一定需要維修。'],
+    '分類回收':['warn','外觀完整不代表該直接回收；先請專業人員判斷能否繼續使用。']
+  },
+  '變暗':{
+    '繼續使用':['warn','變暗有不同可能原因，不能只看外觀就決定繼續用；先請專業人員檢查。'],
+    '專業維修':['good','先交給專業人員檢查性能與安全，再決定維修、繼續使用或其他去向。'],
+    '分類回收':['warn','變暗不等於必須丟掉；是否能修或再利用，要由專業人員判斷。']
+  },
+  '破損':{
+    '繼續使用':['warn','看到破損先不要繼續使用，也不要讓孩子碰設備；請專業人員評估。'],
+    '專業維修':['good','先停止使用並交由專業人員評估；能否修理，要看損傷與安全狀況。'],
+    '分類回收':['good','若專業人員判定不宜修復，應由設置者依案場條件交合格機構處理，不是丟進家用回收袋。']
+  }
+};
+function chooseStatus(b){
+  st=b.dataset.s;
+  document.querySelectorAll('#inspect button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  $('note').className='note';
+  $('note').textContent='再選一個可能的下一站。';
+  document.querySelectorAll('.path').forEach(x=>x.classList.remove('good','bad'));
+}
+function choosePath(p){
+  if(!st){$('note').className='note warn';$('note').textContent='先選圖卡狀況，再想下一站。';return;}
+  const [kind,message]=feedback[st][p.dataset.p];
+  document.querySelectorAll('.path').forEach(x=>x.classList.remove('good','bad'));
+  p.classList.add(kind==='good'?'good':'bad');
+  $('note').className='note '+kind;
+  $('note').textContent=message;
+}
+function reset(){
+  st='';
+  document.querySelectorAll('button').forEach(x=>x.classList.remove('on','good','bad'));
+  $('note').className='note';
+  $('note').textContent='先選一種圖卡狀況。';
+}
+function bindPress(element,handler){
+  let lastTouch=0;
+  element.addEventListener('touchend',event=>{event.preventDefault();lastTouch=Date.now();handler();},{passive:false});
+  element.addEventListener('click',()=>{if(Date.now()-lastTouch>700)handler();});
+  element.addEventListener('keydown',event=>{
+    if((event.key==='Enter'||event.key===' ')&&!event.repeat){event.preventDefault();handler();}
+  });
+}
+document.querySelectorAll('#inspect button').forEach(b=>bindPress(b,()=>chooseStatus(b)));
+document.querySelectorAll('.path').forEach(p=>bindPress(p,()=>choosePath(p)));
+bindPress($('reset'),reset);
+
+</script>
+</body>
+</html>
