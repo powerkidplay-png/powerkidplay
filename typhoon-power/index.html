@@ -1,0 +1,22 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><!--
+  ⚡ 電力爸爸的生活筆記 - 互動工具
+  工具名稱：這一週的用電曲線
+  開發日期：2026-09-10
+  作者：電力爸爸
+  網站：https://powerkidplay.blogspot.com/
+  © 2026 電力爸爸的生活筆記，保留所有權利。
+  本程式碼為電力爸爸的原創作品，公開供學習參考。
+  歡迎透過連結分享給孩子遊玩。
+  若要在自己的網站使用、嵌入或改作，須事先來信取得同意：
+  powerkidplay@gmail.com
+--><title>這一週的用電曲線</title><script async src="https://www.googletagmanager.com/gtag/js?id=G-FCBM83421N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FCBM83421N');
+</script><style>*{box-sizing:border-box}body{margin:0;padding:10px;background:transparent;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;color:#183b50;line-height:1.65}main{max-width:450px;margin:auto;background:white;border:1px solid #c9deef;border-radius:18px;overflow:hidden}h1{margin:0;background:linear-gradient(135deg,#1565C0,#1976D2);font-size:20px;color:white;padding:14px;text-align:center}.body{padding:14px}p{margin:8px 0}small{display:block;color:#536b7b;font-size:13px}label{display:block;margin:12px 0 4px;font-weight:bold}select,input,button{font:inherit;width:100%;min-height:46px}select{background:white;color:#183b50;border:1px solid #9cbfd7;border-radius:8px;padding:8px}input{accent-color:#1565C0}button{cursor:pointer;background:#1565C0;color:white;border:0;border-radius:8px;padding:8px;margin-top:12px}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #f7a600;outline-offset:2px}.chart{display:flex;gap:6px;height:155px;margin-top:14px;border-bottom:2px solid #9cbfd7}.col{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}.bar{width:80%;background:#1976d2;border-radius:5px 5px 0 0}.peak{background:#e57905}.daylabel{font-size:12px}.value{font-size:13px;font-weight:bold}#result{padding:10px;background:#e7f3fc;border-radius:10px;min-height:80px}output{float:right;color:#1565c0}footer{font-size:12px;text-align:center;padding:10px;color:#536b7b}</style></head><body><main><h1>這一週的用電曲線</h1><div class="body"><p>改變一日的刻度，看最高日如何換人，或出現並列。</p><small>七天皆為假想的每日尖峰需求刻度，沒有真實單位、氣溫、停班或颱風資料，不是預報。</small><label for="scenario">假想的一週</label><select id="scenario"><option value="A">情境A</option><option value="B">情境B</option></select><div class="chart" id="chart" role="img" aria-label="七天假想每日尖峰需求比較"></div><label for="day">要調整哪一天</label><select id="day"><option value="0">日1</option><option value="1">日2</option><option value="2">日3</option><option value="3">日4</option><option value="4">日5</option><option value="5">日6</option><option value="6">日7</option></select><label for="value">這一天的示意刻度 <output id="shown"></output></label><input id="value" type="range" min="0" max="100" step="5" value="65"><p id="result" aria-live="polite"></p><small>每日最高功率和全天電量不同。最高日換人，只反映你改了示意數字，不能拿來推定颱風的影響。</small><button id="reset">重設這一週</button></div><footer>© <span id="year"></span> 電力爸爸的生活筆記</footer></main><script>
+const $=id=>document.getElementById(id);const presets={A:[65,70,60,55,60,65,70],B:[45,55,60,80,70,65,50]};let values=presets.A.slice();
+function render(){const max=Math.max(...values),ties=values.map((x,i)=>x===max?i+1:null).filter(x=>x!==null);$('shown').value=values[+$('day').value];$('value').value=values[+$('day').value];$('chart').innerHTML=values.map((v,i)=>`<div class="col"><span class="value">${v}</span><div class="bar ${v===max?'peak':''}" style="height:${v}px"></div><span class="daylabel">日${i+1}</span></div>`).join('');$('result').textContent=`最高 ${max} 刻度：${ties.map(x=>'日'+x).join('、')}${ties.length>1?'（並列）':''}。⚡ 電鱝老師：先比同一種數字，再問原因。`;}
+$('scenario').addEventListener('change',()=>{values=presets[$('scenario').value].slice();$('day').value=0;render()});$('day').addEventListener('change',render);$('value').addEventListener('input',()=>{values[+$('day').value]=+$('value').value;render()});$('reset').addEventListener('click',()=>{$('scenario').value='A';$('day').value=0;values=presets.A.slice();render()});$('year').textContent=new Date().getFullYear();render();
+</script></body></html>
